@@ -6,16 +6,21 @@
 
 # PacketStreamer
 
-Deepfence PacketStreamer is a high-performance remote packet capture and collection tool. It is used by Deepfence's [ThreatStryker](https://deepfence.io/threatstryker/) security platform to gather network traffic for forensic analysis.
+Deepfence PacketStreamer is a high-performance remote packet capture and collection tool. It is used by Deepfence's [ThreatStryker](https://deepfence.io/threatstryker/) security observability platform to gather network traffic on demand from cloud workloads for forensic analysis. 
+
+Primary design goals:
+
+* Stay light, capture and stream, no additional processing
+* Portability, works across virtual machines, Kubernetes and AWS Fargate. Linux and Windows. 
 
  * PacketStreamer **sensors** are started on the target servers. Sensors capture traffic, apply filters, and then stream the traffic to a central reciever. Traffic streams may be compressed and/or encrypted using TLS. 
  * The PacketStreamer **reciever** accepts PacketStreamer streams from multiple remote sensors, and writes the packets to a local `pcap` capture file
 
 <p align="center"><img src="/images/readme/packetstreamer.png" width="66%"/><p>
 
-PacketStreamer sensors collect raw network packets on remote hosts.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written as raw pcap data.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.  
+PacketStreamer sensors collect raw network packets on remote hosts.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written in pcap format.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.  
     
-The PacketStreamer receiver accepts network traffic from multiple sensors, collecting it into a single, central `pcap` file.  You can then process the pcap file using the packet analysis tooling of your choice, such as `Wireshark`, `Zeek`, `Suricata`, or as a source for Machine Learning models.
+The PacketStreamer receiver accepts network traffic from multiple sensors, collecting it into a single, central `pcap` file.  You can then process the pcap file or live feed the traffic to the tooling of your choice, such as `Zeek`, `Wireshark` `Suricata`, or as live stream for Machine Learning models.
 
 ### When to use PacketStreamer
 
@@ -25,7 +30,7 @@ Use PacketStreamer if you need a lightweight, efficient method to collect raw ne
 
 ### Who uses PacketStreamer?
 
- * Deepfence [ThreatStryker](https://deepfence.io/threatstryker/) uses PacketStreamer to capture network indicators-of-attack from production platforms
+ * Deepfence [ThreatStryker](https://deepfence.io/threatstryker/) uses PacketStreamer to capture traffic from production platforms for forensics and  anomaly detection.
 
 
 # Quickstart: Build and Run PacketStreamer
