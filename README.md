@@ -21,7 +21,7 @@ The PacketStreamer **reciever** accepts PacketStreamer streams from multiple rem
 
 PacketStreamer sensors collect raw network packets on remote hosts.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written in pcap format.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.  
     
-The PacketStreamer receiver accepts network traffic from multiple sensors, collecting it into a single, central `pcap` file.  You can then process the pcap file or live feed the traffic to the tooling of your choice, such as `Zeek`, `Wireshark` `Suricata`, or as live stream for Machine Learning models.
+The PacketStreamer receiver accepts network traffic from multiple sensors, collecting it into a single, central `pcap` file.  You can then process the pcap file or live feed the traffic to the tooling of your choice, such as `Zeek`, `Wireshark` `Suricata`, or as a live stream for Machine Learning models.
 
 ### When to use PacketStreamer
 
