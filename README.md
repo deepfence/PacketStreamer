@@ -206,7 +206,7 @@ cd PacketStreamer
 ./packetstreamer receiver --config ./contrib/config/receiver-vagrant.yaml
 ```
 
-### sensor side
+### Sensor side
 
 ```bash
 cd PacketStreamer
