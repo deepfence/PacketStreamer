@@ -13,7 +13,7 @@ Deepfence PacketStreamer is a high-performance remote packet capture and collect
 
 <p align="center"><img src="/images/readme/packetstreamer.png" width="66%"/><p>
 
-PacketStreamer sensors collect raw network packets on remote hosts using libpcap or af_packet.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written as raw pcap data.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.  
+PacketStreamer sensors collect raw network packets on remote hosts.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written as raw pcap data.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.  
     
 The PacketStreamer receiver accepts network traffic from multiple sensors, collecting it into a single, central `pcap` file.  You can then process the pcap file using the packet analysis tooling of your choice, such as `Wireshark`, `Zeek`, `Suricata`, or as a source for Machine Learning models.
 
