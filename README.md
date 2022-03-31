@@ -13,8 +13,19 @@ Deepfence PacketStreamer is a high-performance remote packet capture and collect
 
 <p align="center"><img src="/images/readme/packetstreamer.png" width="66%"/><p>
 
-PacketStreamer can be used to collect network traffic from multiple different remote workloads, collecting it into a single, central pcap file.  You can then process the log file using the packet analysis tooling of your choice, such as `Wireshark`, `Zeek`, `Suricata` or running Machine Learning models.
+PacketStreamer sensors collect raw network packets on remote hosts using libpcap or af_packet.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written as raw pcap data.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.  
+    
+The PacketStreamer receiver accepts network traffic from multiple sensors, collecting it into a single, central `pcap` file.  You can then process the pcap file using the packet analysis tooling of your choice, such as `Wireshark`, `Zeek`, `Suricata`, or as a source for Machine Learning models.
 
+### When to use PacketStreamer
+
+PacketStreamer meets more general use cases than existing alternatives. For example, [PacketBeat](https://github.com/elastic/beats/tree/master/packetbeat) captures and parses the packets on multiple remote hosts, assembles transactions, and ships the processed data to a central ElasticSearch collector. [ksniff](https://github.com/eldadru/ksniff) captures raw packet data from a single Kubernetes pod. 
+
+Use PacketStreamer if you need a lightweight, efficient method to collect raw network data from multiple machines for central logging and analysis.
+
+### Who uses PacketStreamer?
+
+ * Deepfence [ThreatStryker](https://deepfence.io/threatstryker/) uses PacketStreamer to capture network indicators-of-attack from production platforms
 
 
 # Quickstart: Build and Run PacketStreamer
@@ -25,28 +36,6 @@ Build the `packetstreamer` binary using the `go` toolchain as follows:
 
 ```bash
 make
-```
-
-`RELEASE` parameter can be used to strip the binary which can be used on
-production environment:
-
-```bash
-make RELEASE=1
-```
-
-The `packetstreamer` can be also built with Docker. In that case, it's going
-to be statically linked with musl and libpcap, which makes it portable across
-Linux distributions:
-
-```bash
-make docker-bin
-make docker-bin RELEASE=1
-```
-
-Static linking can be also enabled on the regular build:
-
-```bash
-make STATIC=1
 ```
 
 ## Run a PacketStreamer receiver
@@ -68,6 +57,11 @@ You can process the `pcap` output in a variety of ways:
 tail -c +1 -f /tmp/dump_file | tcpdump -r -
 ```
 
+```bash
+# Edit the configuration to write to /dev/stdout, and pipe output to tcpdump:
+./packet-streamer receiver --config contrib/receiver-stdout.yaml | tcpdump -r -
+```
+
 ## Run a PacketStreamer sensor
 
 ```bash
@@ -82,7 +76,9 @@ sudo packetstreamer sensor --config ./contrib/config/sensor-local.yaml
 
 When running the sensor remotely, edit the configuration file to target the remote receiver.
 
-You can generate some test traffic using your favorite load generator.  For example, to use vegeta:
+## Testing PacketStreamer    
+
+You can generate some test traffic using your favorite load generator - `ab`, `wrk`, `httperf`, `vegeta`.  For example, to use vegeta:
 
 ```bash
 # install vegeta
@@ -91,21 +87,43 @@ go install github.com/tsenart/vegeta@latest
 echo 'GET http://some_ip:80' | vegeta attack -rate 100 -duration 5m | tee results.bin | vegeta report
 ```
 
-# Container images
+# Advanced Build Options
 
-Container image can be built with:
+Use the `RELEASE` parameter to strip the binary for a production environment:
+
+```bash
+make RELEASE=1
+```
+
+Use the `STATIC` parameter to statically-link the binary:
+
+```bash
+make STATIC=1
+```
+
+## Build using Docker
+
+Use the `docker-bin` target to build `packetstreamer` with Docker. The binary will be statically linked with `musl` and `libpcap`, making it portable across Linux distributions:
+
+```bash
+make docker-bin
+
+# Alternatively, build a stripped release binary
+make docker-bin RELEASE=1
+```
+
+## Build a Container Image
+
+Use the `docker-image` target to build a container image:
 
 ```bash
 make docker-image
-```
 
-A release image (with stripped binary) can be built with:
-
-```bash
+# Alternatively, build a stripped release binary
 make docker-image RELEASE=1
 ```
 
-# Deploying on Kubernetes
+## Deploy on Kubernetes
 
 PacketStreamer can be deployed on Kubernetes using Helm:
 
@@ -114,15 +132,15 @@ kubectl apply -f ./contrib/kubernetes/namespace.yaml
 helm install packetstreamer ./contrib/helm/ --namespace packetstreamer
 ```
 
-By default, it deploys a DaemonSet with sensor on all nodes and one receiver
-instance. For the custom configuration values, please refer to the
-[values.yaml file](/contrib/helm/values.yaml).
+By default, the Helm chart deploys a DaemonSet with sensor on all nodes and one receiver instance. For the custom configuration values, please refer to the [values.yaml file](/contrib/helm/values.yaml).
 
-# Testing on Docker
+# Advanced Test Scenarios
+
+## Testing on Docker
 
 PacketStreamer container images can be tested locally on Docker.
 
-## Receiver side
+### Receiver side
 
 ```bash
 docker run --rm -it \
@@ -133,7 +151,7 @@ docker run --rm -it \
     receiver --config /etc/packetstreamer/receiver.yaml
 ```
 
-## Sensor side
+### Sensor side
 
 ```bash
 docker run --rm -it \
@@ -143,23 +161,19 @@ docker run --rm -it \
     sensor --config /etc/packetstreamer/sensor-local.yaml
 ```
 
-Then some live traffic can be generated on the host (sensor is running with
-`--net=host` and `NET_ADMIN` capability, so it's capturing all the packets
-on the host):
+The sensor requires `--net=host` and `NET_ADMIN` capability in order to capture all of the packets on the host.
 
 ```bash
 echo 'GET http://some_ip:80' | vegeta attack -rate 100 -duration 5m | tee results.bin | vegeta report
 ```
 
-The dump file is available in `$HOME/container_tmp/dump_file`.
+The `pcap` dump file is available in `$HOME/container_tmp/dump_file`.
 
-# Testing on Vagrant
+## Testing on Vagrant
 
 On a single host, you may use [Vagrant](https://www.vagrantup.com) to run sensor and receiver hosts easily:
 
-Install Vagrant according to [the official instructions](https://www.vagrantup.com/downloads):
-
- * By default, Vagrant uses Virtualbox, but you can also use [vagrant-libvirt](https://github.com/vagrant-libvirt/vagrant-libvirt), which can be installed with `vagrant plugin install vagrant-libvirt`
+Install Vagrant according to [the official instructions](https://www.vagrantup.com/downloads). By default, Vagrant uses Virtualbox; you should install [vagrant-libvirt](https://github.com/vagrant-libvirt/vagrant-libvirt), using `vagrant plugin install vagrant-libvirt`.
 
 Start the two Vagrant VMs, `receiver` and `sensor`:
 
@@ -205,11 +219,11 @@ Generate some live traffic
 echo 'GET http://some_ip:80' | vegeta attack -rate 100 -duration 5m | tee results.bin | vegeta report
 ```
 
-# Configuration
+# PacketStreamer Configuration
 
 `packetstreamer` is configured using a yaml-formatted configuration file. 
 
-```
+```yaml
 input:                         # required in 'receiver' mode
   address: _ip-address_
   port: _listen-port_
