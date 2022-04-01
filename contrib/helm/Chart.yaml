@@ -1,0 +1,10 @@
+apiVersion: v2
+name: PacketStreamer
+version: 0.0.1
+description: A Helm chart for PacketStreamer
+type: application
+home: https://github.com/deepfence/PacketStreamer
+appVersion: "v0.0.1"
+maintainers:
+  - name: Michal Rostecki
+    email: michal@deepfence.io

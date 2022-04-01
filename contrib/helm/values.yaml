@@ -1,0 +1,46 @@
+packetstreamer:
+  image:
+    repository: deepfenceio/deepfence_packetstreamer
+    tag: latest
+
+imagePullSecrets:
+  # - name: regcred
+
+receiver:
+  replicas: 1
+
+  input:
+    address: 0.0.0.0
+    port: 80
+  output:
+    file:
+      path: /tmp/dump
+  tls:
+    enable: false
+    # certFile: ""
+    # keyFile: ""
+  auth:
+    enable: false
+    # key: ""
+  # logFilename: ""
+
+sensor:
+  daemonSet: true
+  # replicas: 1
+
+  output:
+    server:
+      address: packetstreamer-receiver.packetstreamer.svc.cluster.local
+      port: 80
+    # file:
+    #   path: _filename_
+  auth:
+    enable: false
+    key: ""
+  compressBlockSize: 512
+  inputPacketLen: 65535
+  # logFilename: ""
+  pcapMode: all
+  # capturePorts: _list-of-ports_
+  # captureInterfacesPorts: _map: interface-name:port_
+  # ignorePorts: _list-of-ports_

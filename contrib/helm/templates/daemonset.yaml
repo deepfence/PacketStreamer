@@ -1,0 +1,35 @@
+{{- if .Values.sensor.daemonSet }}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: packetstreamer-sensor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "packetstreamer-sensor.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "packetstreamer-sensor.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "packetstreamer-sensor.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: sensor
+          image: "{{ .Values.packetstreamer.image.repository }}:{{ .Values.packetstreamer.image.tag | default .Chart.AppVersion }}"
+          args: ["sensor", "--config", "/etc/packetstreamer/config.yaml"]
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/packetstreamer
+      imagePullSecrets:
+        {{ toYaml .Values.imagePullSecrets | indent 8 }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: packetstreamer-sensor-config
+{{- end }}

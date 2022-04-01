@@ -1,0 +1,72 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: packetstreamer-receiver-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    input:
+      address: {{ .Values.receiver.input.address }}
+      port: {{ .Values.receiver.input.port }}
+    output:
+      file:
+        path: {{ .Values.receiver.output.file.path }}
+    tls:
+      enable: {{ .Values.receiver.tls.enable }}
+{{- if hasKey .Values.receiver.tls "certFile" }}
+      certFile: {{ .Values.receiver.tls.certFile }}
+{{- end }}
+{{- if hasKey .Values.receiver.tls "keyFile" }}
+      keyFile: {{ .Values.receiver.tls.keyFile }}
+{{- end }}
+    auth:
+      enable: {{ .Values.receiver.auth.enable }}
+{{- if hasKey .Values.receiver.auth "key" }}
+      key: {{ .Values.receiver.auth.key}}
+{{- end }}
+{{- if hasKey .Values.receiver "logFilename" }}
+    logFilename: {{ .Values.receiver.logFilename }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: packetstreamer-sensor-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    output:
+      server:
+        address: {{ .Values.sensor.output.server.address }}
+        port: {{ .Values.sensor.output.server.port }}
+{{- if hasKey .Values.sensor.output "file" }}
+      file:
+        path: {{ .Values.sensor.output.file.path }}
+{{- end }}
+    auth:
+      enable: {{ .Values.sensor.auth.enable }}
+{{- if hasKey .Values.sensor.auth "key" }}
+      key: {{ .Values.sensor.auth.key }}
+{{- end }}
+    compressBlockSize: {{ .Values.sensor.compressBlockSize }}
+    inputPacketLen: {{ .Values.sensor.inputPacketLen }}
+{{- if hasKey .Values.sensor "logFilename" }}
+    logFilename: {{ .Values.sensor.logFilename }}
+{{- end }}
+    pcapMode: {{ .Values.sensor.pcapMode }}
+{{- if hasKey .Values.sensor "capturePorts" }}
+    capturePorts: {{- range .Values.sensor.capturePorts }}
+      {{ . }}
+    {{- end }}
+{{- end }}
+{{- if hasKey .Values.sensor "captureInterfacesPorts" }}
+    captureInterfacesPorts: {{- range .Value.sensor.captureInterfacesPorts }}
+      {{ . }}
+    {{- end }}
+{{- end }}
+{{- if hasKey .Values.sensor "ignorePorts" }}
+    ignorePorts: {{- range .Value.sensor.ignorePorts }}
+      {{ . }}
+    {{- end }}
+{{- end }}
