@@ -39,7 +39,7 @@ func decompressPkts(config *config.Config, pktUncompressChannel, output chan str
 	for {
 		decompressBuff, chanExitVal := <-pktUncompressChannel
 		if chanExitVal == false {
-			log.Println("Exiting uncompress channel")
+			// log.Println("Exiting uncompress channel")
 			break
 		}
 		deCompressedData, err := s2.Decode(packetData, []byte(decompressBuff))

@@ -68,7 +68,9 @@ func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel c
 	for {
 		err := readDataFromSocket(clientConn, dataBuff[0:totalHdrLen], totalHdrLen)
 		if err != nil {
-			log.Printf("Unable to read data from connection. %v\n", err)
+			if !os.IsTimeout(err) {
+				log.Printf("Unable to read data from connection. %v\n", err)
+			}
 			clientConn.Close()
 			close(pktUncompressChannel)
 			return

@@ -90,7 +90,7 @@ func NewConfig(configFileName string) (*Config, error) {
 		return nil, fmt.Errorf("could not parse the config file %s: %w", configFileName, err)
 	}
 
-	compressBlockSize := 512
+	compressBlockSize := 65
 	if rawConfig.CompressBlockSize != nil {
 		compressBlockSize = *rawConfig.CompressBlockSize
 	}

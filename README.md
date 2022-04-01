@@ -246,7 +246,7 @@ tls:                           # optional
 auth:                          # optional; receiver and sensor must use same shared key
   enable: _true_|_false_
   key: _string_
-compressBlockSize: _integer_   # optional; default: 512
+compressBlockSize: _integer_   # optional; default: 65
 inputPacketLen: _integer_      # optional; default: 65535
 logFilename: _filename_        # optional
 pcapMode: _Allow_|_Deny_|_All_ # optional

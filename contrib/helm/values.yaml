@@ -37,7 +37,7 @@ sensor:
   auth:
     enable: false
     key: ""
-  compressBlockSize: 512
+  compressBlockSize: 65
   inputPacketLen: 65535
   # logFilename: ""
   pcapMode: all
