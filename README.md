@@ -6,26 +6,26 @@
 
 # PacketStreamer
 
-Deepfence PacketStreamer is a high-performance remote packet capture and collection tool. It is used by Deepfence's [ThreatStryker](https://deepfence.io/threatstryker/) security observability platform to gather network traffic on demand from cloud workloads for forensic analysis. 
+Deepfence PacketStreamer is a high-performance remote packet capture and collection tool. It is used by Deepfence's [ThreatStryker](https://deepfence.io/threatstryker/) security observability platform to gather network traffic on demand from cloud workloads for forensic analysis.
 
 Primary design goals:
 
 * Stay light, capture and stream, no additional processing
-* Portability, works across virtual machines, Kubernetes and AWS Fargate. Linux and Windows. 
+* Portability, works across virtual machines, Kubernetes and AWS Fargate. Linux and Windows.
 
-PacketStreamer **sensors** are started on the target servers. Sensors capture traffic, apply filters, and then stream the traffic to a central reciever. Traffic streams may be compressed and/or encrypted using TLS. 
+PacketStreamer **sensors** are started on the target servers. Sensors capture traffic, apply filters, and then stream the traffic to a central reciever. Traffic streams may be compressed and/or encrypted using TLS.
 
 The PacketStreamer **reciever** accepts PacketStreamer streams from multiple remote sensors, and writes the packets to a local `pcap` capture file
 
 <p align="center"><img src="/images/readme/packetstreamer.png" width="66%"/><p>
 
-PacketStreamer sensors collect raw network packets on remote hosts.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written in pcap format.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.  
-    
+PacketStreamer sensors collect raw network packets on remote hosts.  It selects packets to capture using a BPF filter, and forwards them to a central reciever process where they are written in pcap format.  Sensors are very lightweight and impose little performance impact on the remote hosts.  PacketStreamer sensors can be run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.
+
 The PacketStreamer receiver accepts network traffic from multiple sensors, collecting it into a single, central `pcap` file.  You can then process the pcap file or live feed the traffic to the tooling of your choice, such as `Zeek`, `Wireshark` `Suricata`, or as a live stream for Machine Learning models.
 
 ### When to use PacketStreamer
 
-PacketStreamer meets more general use cases than existing alternatives. For example, [PacketBeat](https://github.com/elastic/beats/tree/master/packetbeat) captures and parses the packets on multiple remote hosts, assembles transactions, and ships the processed data to a central ElasticSearch collector. [ksniff](https://github.com/eldadru/ksniff) captures raw packet data from a single Kubernetes pod. 
+PacketStreamer meets more general use cases than existing alternatives. For example, [PacketBeat](https://github.com/elastic/beats/tree/master/packetbeat) captures and parses the packets on multiple remote hosts, assembles transactions, and ships the processed data to a central ElasticSearch collector. [ksniff](https://github.com/eldadru/ksniff) captures raw packet data from a single Kubernetes pod.
 
 Use PacketStreamer if you need a lightweight, efficient method to collect raw network data from multiple machines for central logging and analysis.
 
@@ -82,7 +82,7 @@ sudo packetstreamer sensor --config ./contrib/config/sensor-local.yaml
 
 When running the sensor remotely, edit the configuration file to target the remote receiver.
 
-## Testing PacketStreamer    
+## Testing PacketStreamer
 
 You can generate some test traffic using your favorite load generator - `ab`, `wrk`, `httperf`, `vegeta`.  For example, to use vegeta:
 
@@ -227,7 +227,7 @@ echo 'GET http://some_ip:80' | vegeta attack -rate 100 -duration 5m | tee result
 
 # PacketStreamer Configuration
 
-`packetstreamer` is configured using a yaml-formatted configuration file. 
+`packetstreamer` is configured using a yaml-formatted configuration file.
 
 ```yaml
 input:                         # required in 'receiver' mode
@@ -241,8 +241,8 @@ output:
     path: _filename_
 tls:                           # optional
   enable: _true_|_false_
-  certFile: _filename_
-  keyFile: _filename_
+  certfile: _filename_
+  keyfile: _filename_
 auth:                          # optional; receiver and sensor must use same shared key
   enable: _true_|_false_
   key: _string_
