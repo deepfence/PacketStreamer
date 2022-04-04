@@ -3,6 +3,7 @@ FROM alpine:3.15 as builder
 RUN apk update \
     && apk add \
     bison \
+    build-base \
     ca-certificates \
     flex \
     git \
