@@ -1,8 +1,19 @@
 package streamer
 
-import "crypto/tls"
+import (
+	"crypto/tls"
+	"errors"
+)
 
 func getTlsConfig(certParam string, keyParam string, rootParam string) (*tls.Config, error) {
+
+	if len(certParam) == 0 {
+		return nil, errors.New("No cert file provided")
+	}
+
+	if len(keyParam) == 0 {
+		return nil, errors.New("No key file provided")
+	}
 
 	config := &tls.Config{}
 	certInfo, err := loadCertificates(certParam, keyParam, rootParam)

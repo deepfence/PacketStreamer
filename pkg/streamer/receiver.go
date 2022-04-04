@@ -137,7 +137,7 @@ func processHost(config *config.Config, consolePktOutputChannel chan string, pro
 	if config.TLS.Enable {
 		config, err := getTlsConfig(config.TLS.CertFile, config.TLS.KeyFile, "")
 		if err != nil {
-			log.Println(err)
+			log.Println("Unable to start TLS listener: "+err.Error())
 			return
 		}
 		listener, err = tls.Listen(proto, addr, config)
