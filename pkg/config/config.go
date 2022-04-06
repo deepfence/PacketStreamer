@@ -3,7 +3,9 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"time"
 
+	bytesize "github.com/inhies/go-bytesize"
 	"gopkg.in/yaml.v3"
 )
 
@@ -30,9 +32,19 @@ type ServerOutputConfig struct {
 	Protocol *string
 }
 
-type OutputConfig struct {
+type S3OutputRawConfig struct {
+	Bucket        string
+	Region        string
+	KeyFormat     *string `yaml:"keyFormat,omitempty"`
+	TotalFileSize *string `yaml:"totalFileSize,omitempty"`
+	UploadTimeout *string `yaml:"uploadTimeout,omitempty"`
+	UsePutObject  *bool   `yaml:"usePutObject,omitempty"`
+}
+
+type OutputRawConfig struct {
 	File   *FileOutputConfig
 	Server *ServerOutputConfig
+	S3     *S3OutputRawConfig
 }
 
 type TLSConfig struct {
@@ -53,7 +65,7 @@ type SamplingRateConfig struct {
 
 type RawConfig struct {
 	Input                  *InputConfig
-	Output                 OutputConfig
+	Output                 OutputRawConfig
 	TLS                    TLSConfig
 	Auth                   AuthConfig
 	CompressBlockSize      *int             `yaml:"compressBlockSize,omitempty"`
@@ -63,6 +75,21 @@ type RawConfig struct {
 	CapturePorts           []int            `yaml:"capturePorts,omitempty"`
 	CaptureInterfacesPorts map[string][]int `yaml:"captureInterfacesPorts,omitempty"`
 	IgnorePorts            []int            `yaml:"ignorePorts,omitempty"`
+}
+
+type S3OutputConfig struct {
+	Bucket        string
+	Region        string
+	KeyFormat           string
+	TotalFileSize *bytesize.ByteSize
+	UploadTimeout time.Duration
+	UsePutObject  bool
+}
+
+type OutputConfig struct {
+	File   *FileOutputConfig
+	Server *ServerOutputConfig
+	S3     *S3OutputConfig
 }
 
 type Config struct {
@@ -101,7 +128,51 @@ func NewConfig(configFileName string) (*Config, error) {
 				Address:  rawConfig.Output.Server.Address,
 				Port:     rawConfig.Output.Server.Port,
 				Protocol: &protocol,
+		}
+	}
+
+	var s3 *S3OutputConfig
+	if rawConfig.Output.S3 != nil {
+		var (
+			totalFileSize *bytesize.ByteSize
+			uploadTimeout time.Duration
+		)
+
+		key := "packetstreamer-dump"
+		if rawConfig.Output.S3.KeyFormat != nil {
+			key = *rawConfig.Output.S3.KeyFormat
+		}
+
+		if rawConfig.Output.S3.TotalFileSize != nil {
+			t, err := bytesize.Parse(*rawConfig.Output.S3.TotalFileSize)
+			if err != nil {
+				return nil, fmt.Errorf("could not parse the totalFileSize field %s: %w", *rawConfig.Output.S3.TotalFileSize, err)
 			}
+			totalFileSize = &t
+		}
+
+		if rawConfig.Output.S3.UploadTimeout != nil {
+			uploadTimeout, err = time.ParseDuration(*rawConfig.Output.S3.UploadTimeout)
+			if err != nil {
+				return nil, fmt.Errorf("could not parse the uploadTimeout field %s: %w", *rawConfig.Output.S3.UploadTimeout, err)
+			}
+		} else {
+			uploadTimeout = time.Minute
+		}
+
+		usePutObject := false
+		if rawConfig.Output.S3.UsePutObject != nil {
+			usePutObject = *rawConfig.Output.S3.UsePutObject
+		}
+
+		s3 = &S3OutputConfig{
+			Bucket:        rawConfig.Output.S3.Bucket,
+			Region:        rawConfig.Output.S3.Region,
+			KeyFormat:           key,
+			TotalFileSize: totalFileSize,
+			UploadTimeout: uploadTimeout,
+			UsePutObject:  usePutObject,
+		}
 	}
 
 	compressBlockSize := 65
@@ -129,10 +200,11 @@ func NewConfig(configFileName string) (*Config, error) {
 	}
 
 	config := &Config{
-		Input:                  rawConfig.Input,
-		Output:                 OutputConfig{
+		Input: rawConfig.Input,
+		Output: OutputConfig{
 			File:   rawConfig.Output.File,
 			Server: serverOutput,
+			S3:     s3,
 		},
 		TLS:                    rawConfig.TLS,
 		Auth:                   rawConfig.Auth,

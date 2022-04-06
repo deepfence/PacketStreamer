@@ -196,6 +196,12 @@ func InitOutput(config *config.Config) error {
 				return err
 			}
 		}
+	} else if config.Output.S3 != nil {
+		s3, err := NewS3BufWriter(config)
+		if err != nil {
+			return err
+		}
+		outputFd = s3
 	}
 	return nil
 }
