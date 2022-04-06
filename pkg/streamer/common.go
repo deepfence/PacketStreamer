@@ -1,18 +1,18 @@
 package streamer
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io"
 	"log"
 	"net"
 	"os"
-
-	"github.com/google/gopacket/layers"
-	"github.com/google/gopacket/pcapgo"
+	"os/signal"
+	"syscall"
 
 	"github.com/deepfence/PacketStreamer/pkg/config"
+	"github.com/deepfence/PacketStreamer/pkg/output"
+	"github.com/deepfence/PacketStreamer/pkg/pcap"
 )
 
 const (
@@ -24,6 +24,22 @@ var (
 	pktsRead      uint64
 	totalDataSize uint64
 )
+
+type Flusher interface {
+	Flush() error
+}
+
+func NewSignalChannel() chan os.Signal {
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGQUIT,
+		syscall.SIGTSTP,
+		syscall.SIGTERM)
+
+	return signalChannel
+}
 
 func writeOutput(config *config.Config, tmpData []byte) int {
 
@@ -66,21 +82,40 @@ func writeOutput(config *config.Config, tmpData []byte) int {
 	}
 }
 
+func FlushAndCloseOutput() error {
+	if outputFd != nil {
+		if outputFd, ok := outputFd.(Flusher); ok {
+			if err := outputFd.Flush(); err != nil {
+				return fmt.Errorf("could not flush output: %w", err)
+			}
+		}
+		if outputFd, ok := outputFd.(io.WriteCloser); ok {
+			if err := outputFd.Close(); err != nil {
+				return fmt.Errorf("could not close output: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
 func InitOutput(config *config.Config, proto string) error {
 
 	if config.Output.File != nil {
-		var pcapBuffer bytes.Buffer
-		pcapWriter := pcapgo.NewWriter(&pcapBuffer)
 		fileFd := os.Stdout
 		if config.Output.File.Path != "stdout" {
 			var err error
 			fileFd, err = os.OpenFile(config.Output.File.Path, os.O_CREATE|os.O_RDWR, 0644)
 			if err != nil {
-				return err
+				return fmt.Errorf("could not open the output file %s: %w", config.Output.File.Path, err)
 			}
 		}
-		pcapWriter.WriteFileHeader(uint32(config.InputPacketLen), layers.LinkTypeEthernet)
-		fileFd.Write(pcapBuffer.Bytes())
+		pcapBuffer, err := pcap.PcapHeaderBuffer(config)
+		if err != nil {
+			return err
+		}
+		if _, err := fileFd.Write(pcapBuffer); err != nil {
+			return fmt.Errorf("could not write the pcap header to file %s: %w", config.Output.File.Path, err)
+		}
 		outputFd = fileFd
 	} else if config.Output.Server != nil {
 
@@ -119,6 +154,12 @@ func InitOutput(config *config.Config, proto string) error {
 				return err
 			}
 		}
+	} else if config.Output.S3 != nil {
+		s3, err := output.NewS3BufWriter(config)
+		if err != nil {
+			return err
+		}
+		outputFd = s3
 	}
 	return nil
 }

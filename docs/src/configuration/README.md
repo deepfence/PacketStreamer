@@ -10,8 +10,14 @@ output:
   server:                      # required in 'sensor' mode
     address: _ip-address_
     port: _listen-port_
-  file:                        # required in 'receiver' mode
+  file:                        # for 'receiver' mode
     path: _filename_|stdout    # 'stdout' is a reserved name. Receiver will write to stdout
+  s3:                          # for 'receiver' mode
+    bucket: _name_
+    region: _region_
+    keyFormat: _date_format_   # default: /packetstreamer/%Y/%m/%d/%H/%M/%S
+    totalFileSize: _size_      # example: 5M, 500K; default: 1M
+    uploadTimeout: _time_      # example: 30s, 2m; default: 1m
 tls:                           # optional
   enable: _true_|_false_
   certfile: _filename_

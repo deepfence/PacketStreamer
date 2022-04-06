@@ -19,7 +19,8 @@ var sensorCmd = &cobra.Command{
 			log.Fatalf("Invalid configuration: %v", err)
 		}
 
-		mainSignalChannel := make(chan bool)
+		mainSignalChannel := streamer.NewSignalChannel()
+		done := make(chan bool)
 
 		proto := "tcp"
 		if err := streamer.InitOutput(cfg, proto); err != nil {
@@ -27,9 +28,16 @@ var sensorCmd = &cobra.Command{
 		}
 
 		log.Println("Start sending")
-		streamer.StartSensor(cfg, mainSignalChannel)
+		streamer.StartSensor(cfg, done)
 		log.Println("Now waiting in main")
-		<-mainSignalChannel
+
+		go func() {
+			<-mainSignalChannel
+			done <- true
+		}()
+
+		<-done
+		streamer.FlushAndCloseOutput()
 	},
 }
 

@@ -19,7 +19,8 @@ TCP and is able to store them (i.e. output to file) or pass them further.`,
 			log.Fatalf("Invalid configuration: %v", err)
 		}
 
-		mainSignalChannel := make(chan bool)
+		mainSignalChannel := streamer.NewSignalChannel()
+		done := make(chan bool)
 
 		proto := "tcp"
 		if err := streamer.InitOutput(cfg, proto); err != nil {
@@ -27,9 +28,16 @@ TCP and is able to store them (i.e. output to file) or pass them further.`,
 		}
 
 		log.Println("Start receiving")
-		streamer.StartReceiver(cfg, proto, mainSignalChannel)
+		streamer.StartReceiver(cfg, proto, done)
 		log.Println("Now waiting in main")
-		<-mainSignalChannel
+
+		go func() {
+			<-mainSignalChannel
+			done <- true
+		}()
+
+		<-done
+		streamer.FlushAndCloseOutput()
 	},
 }
 

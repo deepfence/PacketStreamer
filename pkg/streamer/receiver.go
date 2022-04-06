@@ -109,7 +109,7 @@ func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel c
 	}
 }
 
-func receiverOutput(config *config.Config, consolePktOutputChannel chan string) {
+func receiverOutput(config *config.Config, consolePktOutputChannel chan string, done chan bool) {
 
 	for {
 		tmpData, chanExitVal := <-consolePktOutputChannel
@@ -123,9 +123,10 @@ func receiverOutput(config *config.Config, consolePktOutputChannel chan string) 
 			break
 		}
 	}
+	done <- true
 }
 
-func processHost(config *config.Config, consolePktOutputChannel chan string, proto string) {
+func processHost(config *config.Config, consolePktOutputChannel chan string, proto string, done chan bool) {
 
 	var err error
 	var listener net.Listener
@@ -137,7 +138,7 @@ func processHost(config *config.Config, consolePktOutputChannel chan string, pro
 	if config.TLS.Enable {
 		config, err := getTlsConfig(config.TLS.CertFile, config.TLS.KeyFile, "")
 		if err != nil {
-			log.Println("Unable to start TLS listener: "+err.Error())
+			log.Println("Unable to start TLS listener: " + err.Error())
 			return
 		}
 		listener, err = tls.Listen(proto, addr, config)
@@ -178,9 +179,10 @@ func processHost(config *config.Config, consolePktOutputChannel chan string, pro
 		go decompressPkts(config, pktUncompressChannel, consolePktOutputChannel)
 		go readPkts(hostConn, config, pktUncompressChannel, sizeChannel)
 	}
+	done <- true
 }
 
-func StartReceiver(config *config.Config, proto string, mainSignalChannel chan bool) {
+func StartReceiver(config *config.Config, proto string, done chan bool) {
 	ticker := time.NewTicker(1 * time.Minute)
 	go func() {
 		for {
@@ -191,6 +193,6 @@ func StartReceiver(config *config.Config, proto string, mainSignalChannel chan b
 		}
 	}()
 	consolePktOutputChannel := make(chan string, maxNumPkts*10)
-	go receiverOutput(config, consolePktOutputChannel)
-	go processHost(config, consolePktOutputChannel, proto)
+	go receiverOutput(config, consolePktOutputChannel, done)
+	go processHost(config, consolePktOutputChannel, proto, done)
 }

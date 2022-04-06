@@ -9,7 +9,7 @@ packetstreamer receiver --config [configuration_file]
 You can use an example configuration file:
 
 ```bash
-packetstreamer receiver --config ./contrib/config/receiver-local.yaml
+packetstreamer receiver --config ./contrib/config/receiver.yaml
 ```
 
 You can process the `pcap` output in a variety of ways:
@@ -21,7 +21,7 @@ tail -c +1 -f /tmp/dump_file | tcpdump -r -
 
 ```bash
 # Edit the configuration to write to the special name 'stdout', and pipe output to tcpdump:
-./packet-streamer receiver --config ./contrib/config/receiver-stdout.yaml | tcpdump -r -
+./packetstreamer receiver --config ./contrib/config/receiver-stdout.yaml | tcpdump -r -
 ```
 
 ## Run a PacketStreamer sensor

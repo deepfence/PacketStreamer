@@ -83,7 +83,7 @@ func initAllInterfaces(config *config.Config) ([]*pcap.Handle, error) {
 	return intfPtr, nil
 }
 
-func grabInterface(config *config.Config, mainSignalChannel chan bool) chan intfPorts {
+func grabInterface(config *config.Config, done chan bool) chan intfPorts {
 	res := make(chan intfPorts)
 	ticker := time.NewTicker(PROCESS_SCAN_FREQUENCY)
 	go func() {
@@ -93,7 +93,7 @@ func grabInterface(config *config.Config, mainSignalChannel chan bool) chan intf
 			err := setupInterfacesAndPortMappings(config)
 			if err != nil {
 				select {
-				case <-mainSignalChannel:
+				case <-done:
 					break
 				case <-ticker.C:
 				}
@@ -109,7 +109,7 @@ func grabInterface(config *config.Config, mainSignalChannel chan bool) chan intf
 				}
 			}
 			select {
-			case <-mainSignalChannel:
+			case <-done:
 				break
 			case <-ticker.C:
 			}

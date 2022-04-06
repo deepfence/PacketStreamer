@@ -1,0 +1,7 @@
+input:
+  address: 0.0.0.0
+  port: 8081
+output:
+  s3:
+    bucket: packetstreamer
+    region: us-east-1

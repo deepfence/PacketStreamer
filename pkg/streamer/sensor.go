@@ -13,7 +13,7 @@ import (
 	"github.com/deepfence/PacketStreamer/pkg/config"
 )
 
-func StartSensor(config *config.Config, mainSignalChannel chan bool) {
+func StartSensor(config *config.Config, done chan bool) {
 	ticker := time.NewTicker(1 * time.Minute)
 	go func() {
 		for {
@@ -24,11 +24,11 @@ func StartSensor(config *config.Config, mainSignalChannel chan bool) {
 		}
 	}()
 	agentOutputChan := make(chan string, maxNumPkts)
-	go sensorOutput(config, agentOutputChan, mainSignalChannel)
-	go processIntfCapture(config, agentOutputChan, mainSignalChannel)
+	go sensorOutput(config, agentOutputChan, done)
+	go processIntfCapture(config, agentOutputChan, done)
 }
 
-func sensorOutput(config *config.Config, agentPktOutputChannel chan string, mainSignalChannel chan bool) {
+func sensorOutput(config *config.Config, agentPktOutputChannel chan string, done chan bool) {
 
 	outputErr := 0
 	dataToSend := make([]byte, config.CompressBlockSize*1024)
@@ -56,7 +56,7 @@ func sensorOutput(config *config.Config, agentPktOutputChannel chan string, main
 			break
 		}
 	}
-	mainSignalChannel <- true
+	done <- true
 }
 
 func gatherPkts(config *config.Config, pktGatherChannel, output chan string) {
@@ -89,7 +89,7 @@ func gatherPkts(config *config.Config, pktGatherChannel, output chan string) {
 	}
 }
 
-func processIntfCapture(config *config.Config, agentPktOutputChannel chan string, mainSignalChannel chan bool) {
+func processIntfCapture(config *config.Config, agentPktOutputChannel chan string, done chan bool) {
 
 	pktGatherChannel := make(chan string, maxNumPkts*500)
 	pktCompressChannel := make(chan string, maxNumPkts)
@@ -113,12 +113,12 @@ func processIntfCapture(config *config.Config, agentPktOutputChannel chan string
 		}
 	} else {
 		capturing := make(map[string]*pcap.Handle)
-		toUpdate := grabInterface(config, mainSignalChannel)
+		toUpdate := grabInterface(config, done)
 		for {
 			var intfPorts intfPorts
 			select {
 			case intfPorts = <-toUpdate:
-			case <-mainSignalChannel:
+			case <-done:
 				break
 			}
 			if capturing[intfPorts.name] == nil {
@@ -147,5 +147,5 @@ func processIntfCapture(config *config.Config, agentPktOutputChannel chan string
 	wg.Wait()
 	close(pktGatherChannel)
 	close(pktCompressChannel)
-	mainSignalChannel <- true
+	done <- true
 }
