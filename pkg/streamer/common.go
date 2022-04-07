@@ -23,6 +23,7 @@ var (
 	outputFd      io.Writer
 	pktsRead      uint64
 	totalDataSize uint64
+	hdrData       = [...]byte{0xde, 0xef, 0xec, 0xe0}
 )
 
 func writeOutput(config *config.Config, tmpData []byte) int {
@@ -120,6 +121,7 @@ func InitOutput(config *config.Config, proto string) error {
 			}
 		}
 	}
+
 	return nil
 }
 

@@ -2,9 +2,11 @@ package streamer
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/binary"
 	"fmt"
+	"github.com/deepfence/PacketStreamer/pkg/plugins"
 	"io"
 	"log"
 	"net"
@@ -17,10 +19,6 @@ import (
 const (
 	maxNumPkts       = 100
 	connTimeout      = 60
-)
-
-var (
-	hdrData = [...]byte{0xde, 0xef, 0xec, 0xe0}
 )
 
 func readDataFromSocket(hostConn net.Conn, dataBuff []byte, bytesToRead int) error {
@@ -108,17 +106,23 @@ func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel c
 	}
 }
 
-func receiverOutput(config *config.Config, consolePktOutputChannel chan string) {
-
+func receiverOutput(ctx context.Context, config *config.Config, consolePktOutputChannel chan string, pluginChan chan<- string) {
 	for {
-		tmpData, chanExitVal := <-consolePktOutputChannel
+		select {
+		case tmpData, chanExitVal := <-consolePktOutputChannel:
+			if !chanExitVal {
+				log.Println("Error while reading from output channel")
+				break
+			}
 
-		if !chanExitVal {
-			log.Println("Error while reading from output channel")
-			break
-		}
+			if pluginChan != nil {
+				pluginChan <- tmpData
+			}
 
-		if writeOutput(config, []byte(tmpData)) == 1 {
+			if writeOutput(config, []byte(tmpData)) == 1 {
+				break
+			}
+		case <-ctx.Done():
 			break
 		}
 	}
@@ -136,7 +140,7 @@ func processHost(config *config.Config, consolePktOutputChannel chan string, pro
 	if config.TLS.Enable {
 		config, err := getTlsConfig(config.TLS.CertFile, config.TLS.KeyFile, "")
 		if err != nil {
-			log.Println("Unable to start TLS listener: "+err.Error())
+			log.Println("Unable to start TLS listener: " + err.Error())
 			return
 		}
 		listener, err = tls.Listen(proto, addr, config)
@@ -179,17 +183,29 @@ func processHost(config *config.Config, consolePktOutputChannel chan string, pro
 	}
 }
 
-func StartReceiver(config *config.Config, proto string, mainSignalChannel chan bool) {
+func StartReceiver(ctx context.Context, config *config.Config, proto string) {
 	ticker := time.NewTicker(1 * time.Minute)
+	consolePktOutputChannel := make(chan string, maxNumPkts*10)
+
+	pluginChan, err := plugins.Start(ctx, config)
+	if err != nil {
+		// log but carry on, we still might want to see the receiver output despite the broken plugins
+		log.Println(err)
+	}
+	go receiverOutput(ctx, config, consolePktOutputChannel, pluginChan)
+	go processHost(config, consolePktOutputChannel, proto)
+
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
 				printDataSize()
+			case <-ctx.Done():
+				if pluginChan != nil {
+					close(pluginChan)
+				}
+				return
 			}
 		}
 	}()
-	consolePktOutputChannel := make(chan string, maxNumPkts*10)
-	go receiverOutput(config, consolePktOutputChannel)
-	go processHost(config, consolePktOutputChannel, proto)
 }
