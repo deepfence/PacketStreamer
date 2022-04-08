@@ -3,4 +3,4 @@ input:
   port: 8081
 output:
   file:
-    path: /dev/stdout
+    path: stdout

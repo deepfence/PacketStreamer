@@ -71,9 +71,13 @@ func InitOutput(config *config.Config, proto string) error {
 	if config.Output.File != nil {
 		var pcapBuffer bytes.Buffer
 		pcapWriter := pcapgo.NewWriter(&pcapBuffer)
-		fileFd, err := os.OpenFile(config.Output.File.Path, os.O_CREATE|os.O_RDWR, 0666)
-		if err != nil {
-			return err
+		fileFd := os.Stdout
+		if config.Output.File.Path != "stdout" {
+			var err error
+			fileFd, err = os.OpenFile(config.Output.File.Path, os.O_CREATE|os.O_RDWR, 0644)
+			if err != nil {
+				return err
+			}
 		}
 		pcapWriter.WriteFileHeader(uint32(config.InputPacketLen), layers.LinkTypeEthernet)
 		fileFd.Write(pcapBuffer.Bytes())
