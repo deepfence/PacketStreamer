@@ -23,17 +23,17 @@ func StartSensor(config *config.Config, mainSignalChannel chan bool) {
 			}
 		}
 	}()
-	agentOutputChan := make(chan string, maxNumPkts)
+	agentOutputChan := make(chan CompressData, maxNumPkts)
 	go sensorOutput(config, agentOutputChan, mainSignalChannel)
 	go processIntfCapture(config, agentOutputChan, mainSignalChannel)
 }
 
-func sensorOutput(config *config.Config, agentPktOutputChannel chan string, mainSignalChannel chan bool) {
+func sensorOutput(config *config.Config, agentPktOutputChannel chan CompressData, mainSignalChannel chan bool) {
 
 	outputErr := 0
-	dataToSend := make([]byte, config.CompressBlockSize*1024)
+	payloadMarkerBuff := [payloadMarkerLen]byte{0x0, 0x0, 0x0, 0x0}
+	dataToSend := make([]byte, config.CompressBlockSize * kilobyte + len(hdrData) + compressFlagByteLen + len(payloadMarkerBuff))
 	copy(dataToSend[0:], hdrData[:])
-	payloadMarkerBuff := [...]byte{0x0, 0x0, 0x0, 0x0}
 	for {
 		if outputErr == maxWriteAttempts {
 			log.Printf("Error while writing %d packets to output. Giving up \n", maxWriteAttempts)
@@ -44,14 +44,19 @@ func sensorOutput(config *config.Config, agentPktOutputChannel chan string, main
 			log.Println("Error while reading from output channel")
 			break
 		}
-		outputData := []byte(tmpData)
-		outputDataLen := len(outputData)
+		outputData := []byte(tmpData.Data)
 		startIdx := len(hdrData)
-		binary.LittleEndian.PutUint32(payloadMarkerBuff[:], uint32(outputDataLen))
+		binary.LittleEndian.PutUint32(payloadMarkerBuff[:], uint32(len(outputData)))
 		copy(dataToSend[startIdx:], payloadMarkerBuff[:])
-		startIdx = startIdx + payloadMarkerLen
+		startIdx = startIdx + len(payloadMarkerBuff)
+		if tmpData.IsCompressed {
+			dataToSend[startIdx] = 1
+		} else  {
+			dataToSend[startIdx] = 0
+		}
+		startIdx += 1
 		copy(dataToSend[startIdx:], outputData[:])
-		startIdx = startIdx + outputDataLen
+		startIdx = startIdx +len(outputData) 
 		if writeOutput(config, dataToSend[0:startIdx]) == 1 {
 			break
 		}
@@ -63,7 +68,7 @@ func gatherPkts(config *config.Config, pktGatherChannel, output chan string) {
 
 	var totalLen = 0
 	var currLen = 0
-	var sizeForEncoding = (config.CompressBlockSize * 1024)
+	var sizeForEncoding = (config.CompressBlockSize * kilobyte)
 	var packetData = make([]byte, sizeForEncoding)
 	var tmpPacketData []byte
 
@@ -89,7 +94,7 @@ func gatherPkts(config *config.Config, pktGatherChannel, output chan string) {
 	}
 }
 
-func processIntfCapture(config *config.Config, agentPktOutputChannel chan string, mainSignalChannel chan bool) {
+func processIntfCapture(config *config.Config, agentPktOutputChannel chan CompressData, mainSignalChannel chan bool) {
 
 	pktGatherChannel := make(chan string, maxNumPkts*500)
 	pktCompressChannel := make(chan string, maxNumPkts)

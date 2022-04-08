@@ -134,7 +134,7 @@ func printDataSize() {
 	currSize := totalDataSize
 	v := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB"}
 	l := 0
-	for ; currSize > 1024; currSize = currSize / 1024 {
+	for ; currSize > kilobyte; currSize = currSize / kilobyte {
 		l++
 	}
 	log.Printf("Total data transfer size is %d %s\n", currSize, v[l])

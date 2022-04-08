@@ -12,7 +12,12 @@ const (
 	kilobyte = 1024
 )
 
-func compressPkts(config *config.Config, pktCompressChannel, output chan string) {
+type CompressData struct {
+	Data string
+	IsCompressed bool
+}
+
+func compressPkts(config *config.Config, pktCompressChannel chan string, output chan CompressData) {
 	var sizeForEncoding = (config.CompressBlockSize * kilobyte)
 	var packetData = make([]byte, sizeForEncoding)
 
@@ -23,15 +28,28 @@ func compressPkts(config *config.Config, pktCompressChannel, output chan string)
 			break
 		}
 		compressedData := s2.Encode(packetData, []byte(inputData))
+		var dataToSend CompressData
+		if len(compressedData) > sizeForEncoding {
+			dataToSend = CompressData{
+				Data: inputData,
+				IsCompressed: false,
+			}
+		} else {
+			dataToSend = CompressData{
+				Data: string(compressedData),
+				IsCompressed: true,
+			}
+		}
+
 		select {
-		case output <- string(compressedData):
+		case output <- dataToSend:
 		default:
 			log.Println("Compression output queue is full. Discarding")
 		}
 	}
 }
 
-func decompressPkts(config *config.Config, pktUncompressChannel, output chan string) {
+func decompressPkts(config *config.Config, pktUncompressChannel chan CompressData, output chan string) {
 
 	var sizeForEncoding = (config.CompressBlockSize * kilobyte)
 	var packetData = make([]byte, sizeForEncoding)
@@ -42,13 +60,19 @@ func decompressPkts(config *config.Config, pktUncompressChannel, output chan str
 			// log.Println("Exiting uncompress channel")
 			break
 		}
-		deCompressedData, err := s2.Decode(packetData, []byte(decompressBuff))
-		if err != nil {
-			log.Printf("Error while S2 decompress. Reason %s\n", err.Error())
-			continue
+		var dataToSend string
+		if decompressBuff.IsCompressed {
+			deCompressedData, err := s2.Decode(packetData, []byte(decompressBuff.Data))
+			if err != nil {
+				log.Printf("Error while S2 decompress. Reason %s\n", err.Error())
+				continue
+			}
+			dataToSend = string(deCompressedData)
+		} else {
+			dataToSend = decompressBuff.Data
 		}
 		select {
-		case output <- string(deCompressedData):
+		case output <- dataToSend:
 		default:
 			log.Println("Decompression output channel is full. Discarding")
 		}

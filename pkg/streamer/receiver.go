@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	payloadMarkerLen = 4
-	maxNumPkts       = 100
-	connTimeout      = 60
+	compressFlagByteLen = 1
+	payloadMarkerLen    = 4
+	maxNumPkts          = 100
+	connTimeout         = 60
 )
 
 var (
@@ -59,11 +60,10 @@ func readDataFromSocket(hostConn net.Conn, dataBuff []byte, bytesToRead int) err
 	}
 }
 
-func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel chan string, sizeChannel chan int) {
+func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel chan CompressData, sizeChannel chan int) {
 
-	var dataBuff = make([]byte, config.CompressBlockSize*1024)
-	hdrDataLen := len(hdrData)
-	var totalHdrLen = hdrDataLen + payloadMarkerLen
+	var dataBuff = make([]byte, config.CompressBlockSize * kilobyte)
+	var totalHdrLen = len(hdrData) + payloadMarkerLen + compressFlagByteLen
 
 	for {
 		err := readDataFromSocket(clientConn, dataBuff[0:totalHdrLen], totalHdrLen)
@@ -75,15 +75,15 @@ func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel c
 			close(pktUncompressChannel)
 			return
 		}
-		compareRes := bytes.Compare(dataBuff[0:hdrDataLen], hdrData[:])
+		compareRes := bytes.Compare(dataBuff[0:len(hdrData)], hdrData[:])
 		if compareRes != 0 {
 			log.Printf("Illegal data received from client")
 			clientConn.Close()
 			close(pktUncompressChannel)
 			return
 		}
-		compressedDataLen := binary.LittleEndian.Uint32(dataBuff[hdrDataLen:])
-		if int(compressedDataLen) > ((config.CompressBlockSize * 1024) - totalHdrLen) {
+		compressedDataLen := binary.LittleEndian.Uint32(dataBuff[len(hdrData):])
+		if int(compressedDataLen) > ((config.CompressBlockSize * kilobyte) - totalHdrLen) {
 			log.Printf("Invalid buffer length %d obtained from client", compressedDataLen)
 			clientConn.Close()
 			close(pktUncompressChannel)
@@ -96,8 +96,12 @@ func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel c
 			close(pktUncompressChannel)
 			return
 		}
+		dataToUncompress := CompressData{
+			Data: string(dataBuff[totalHdrLen:(int(compressedDataLen) + totalHdrLen)]),
+			IsCompressed: dataBuff[len(hdrData)+payloadMarkerLen] != 0,
+		}
 		select {
-		case pktUncompressChannel <- string(dataBuff[totalHdrLen:(int(compressedDataLen) + totalHdrLen)]):
+		case pktUncompressChannel <- dataToUncompress:
 		default:
 			log.Println("Uncompress queue is full. Discarding")
 		}
@@ -167,14 +171,14 @@ func processHost(config *config.Config, consolePktOutputChannel chan string, pro
 		if config.Auth.Enable {
 			go func() {
 				if handleServerAuth(hostConn) {
-					pktUncompressChannel := make(chan string, maxNumPkts)
+					pktUncompressChannel := make(chan CompressData, maxNumPkts)
 					go decompressPkts(config, pktUncompressChannel, consolePktOutputChannel)
 					go readPkts(hostConn, config, pktUncompressChannel, sizeChannel)
 				}
 			}()
 			continue
 		}
-		pktUncompressChannel := make(chan string, maxNumPkts)
+		pktUncompressChannel := make(chan CompressData, maxNumPkts)
 		go decompressPkts(config, pktUncompressChannel, consolePktOutputChannel)
 		go readPkts(hostConn, config, pktUncompressChannel, sizeChannel)
 	}
