@@ -64,8 +64,8 @@ tail -c +1 -f /tmp/dump_file | tcpdump -r -
 ```
 
 ```bash
-# Edit the configuration to write to /dev/stdout, and pipe output to tcpdump:
-./packet-streamer receiver --config contrib/receiver-stdout.yaml | tcpdump -r -
+# Edit the configuration to write to the special name 'stdout', and pipe output to tcpdump:
+./packet-streamer receiver --config ./contrib/config/receiver-stdout.yaml | tcpdump -r -
 ```
 
 ## Run a PacketStreamer sensor
@@ -238,7 +238,7 @@ output:
     address: _ip-address_
     port: _listen-port_
   file:                        # required in 'receiver' mode
-    path: _filename_
+    path: _filename_|stdout    # 'stdout' is a reserved name. Receiver will write to stdout
 tls:                           # optional
   enable: _true_|_false_
   certfile: _filename_
