@@ -25,3 +25,6 @@ go.work
 
 # Binary
 packetstreamer
+
+# Documentation
+docs/book/

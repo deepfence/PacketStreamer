@@ -1,0 +1,26 @@
+name: mdBook
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build book
+      run: |
+        cargo install mdbook
+        pushd docs
+        mdbook build
+        mdbook test
+        popd
+    - name: Deploy website
+      if: github.event_name == 'push'
+      uses: JamesIves/github-pages-deploy-action@4.1.4
+      with:
+        branch: gh-pages
+        folder: book
