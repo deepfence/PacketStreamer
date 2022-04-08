@@ -1,0 +1,249 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Introduction - PacketStreamer</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quickstart/index.html"><strong aria-hidden="true">2.</strong> Quickstart</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="quickstart/building.html"><strong aria-hidden="true">2.1.</strong> Building</a></li><li class="chapter-item expanded "><a href="quickstart/local.html"><strong aria-hidden="true">2.2.</strong> Using locally</a></li><li class="chapter-item expanded "><a href="quickstart/docker.html"><strong aria-hidden="true">2.3.</strong> Using with Docker</a></li><li class="chapter-item expanded "><a href="quickstart/kubernetes.html"><strong aria-hidden="true">2.4.</strong> Using on Kubernetes</a></li><li class="chapter-item expanded "><a href="quickstart/vagrant.html"><strong aria-hidden="true">2.5.</strong> Using on Vagrant</a></li></ol></li><li class="chapter-item expanded "><a href="tools/index.html"><strong aria-hidden="true">3.</strong> Using with other tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tools/suricata.html"><strong aria-hidden="true">3.1.</strong> Suricata</a></li></ol></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">4.</strong> Configuration</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">PacketStreamer</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <p><a href="https://deepfence.github.io/PacketStreamer/"><img src="https://img.shields.io/website?url=https%3A%2F%2Fdeepfence.github.io%2FPacketStreamer%2F" alt="Book" /></a>
+<a href="https://github.com/deepfence/PacketStreamer/blob/master/LICENSE"><img src="https://img.shields.io/github/license/deepfence/PacketStreamer" alt="GitHub license" /></a>
+<a href="https://github.com/deepfence/PacketStreamer/stargazers"><img src="https://img.shields.io/github/stars/deepfence/PacketStreamer" alt="GitHub stars" /></a>
+<a href="https://github.com/deepfence/PacketStreamer/issues"><img src="https://img.shields.io/github/issues/deepfence/PacketStreamer" alt="GitHub issues" /></a>
+<a href="https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X%7EqYx8wMaLt9bGWwkSdgQ"><img src="https://img.shields.io/badge/slack-@deepfence-blue.svg?logo=slack" alt="Slack" /></a></p>
+<h1 id="packetstreamer"><a class="header" href="#packetstreamer">PacketStreamer</a></h1>
+<p>Deepfence PacketStreamer is a high-performance remote packet capture and
+collection tool. It is used by Deepfence's <a href="https://deepfence.io/threatstryker/">ThreatStryker</a>
+security observability platform to gather network traffic on demand from cloud
+workloads for forensic analysis.</p>
+<p>Primary design goals:</p>
+<ul>
+<li>Stay light, capture and stream, no additional processing</li>
+<li>Portability, works across virtual machines, Kubernetes and AWS Fargate. Linux
+and Windows.</li>
+</ul>
+<p>PacketStreamer <strong>sensors</strong> are started on the target servers. Sensors capture
+traffic, apply filters, and then stream the traffic to a central reciever.
+Traffic streams may be compressed and/or encrypted using TLS.</p>
+<p>The PacketStreamer <strong>receiver</strong> accepts PacketStreamer streams from multiple
+remote sensors, and writes the packets to a local <code>pcap</code> capture file</p>
+<p align="center"><img src="https://raw.githubusercontent.com/deepfence/PacketStreamer/main/images/readme/packetstreamer.png"/><p>
+<p>PacketStreamer sensors collect raw network packets on remote hosts. It selects packets
+to capture using a BPF filter, and forwards them to a central reciever process
+where they are written in pcap format.  Sensors are very lightweight and impose
+little performance impact on the remote hosts. PacketStreamer sensors can be
+run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.</p>
+<p>The PacketStreamer receiver accepts network traffic from multiple sensors,
+collecting it into a single, central <code>pcap</code> file.  You can then process the 
+pcap file or live feed the traffic to the tooling of your choice, such as
+<code>Zeek</code>, <code>Wireshark</code> <code>Suricata</code>, or as a live stream for Machine Learning models.</p>
+<h2 id="when-to-use-packetstreamer"><a class="header" href="#when-to-use-packetstreamer">When to use PacketStreamer</a></h2>
+<p>PacketStreamer meets more general use cases than existing alternatives. For
+example, <a href="https://github.com/elastic/beats/tree/master/packetbeat">PacketBeat</a>
+captures and parses the packets on multiple remote hosts, assembles
+transactions, and ships the processed data to a central ElasticSearch
+collector. <a href="https://github.com/eldadru/ksniff">ksniff</a> captures raw packet
+data from a single Kubernetes pod.</p>
+<p>Use PacketStreamer if you need a lightweight, efficient method to collect raw
+network data from multiple machines for central logging and analysis.</p>
+<h2 id="who-uses-packetstreamer"><a class="header" href="#who-uses-packetstreamer">Who uses PacketStreamer?</a></h2>
+<ul>
+<li>Deepfence <a href="https://deepfence.io/threatstryker/">ThreatStryker</a> uses
+PacketStreamer to capture traffic from production platforms for forensics
+and anomaly detection.</li>
+</ul>
+<h2 id="get-in-touch"><a class="header" href="#get-in-touch">Get in touch</a></h2>
+<p>Thank you for using PacketStreamer.</p>
+<ul>
+<li><a href="https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X%7EqYx8wMaLt9bGWwkSdgQ"><img src="https://img.shields.io/badge/slack-@deepfence-brightgreen.svg?logo=slack"></a> Got a question, need some help?  Find the Deepfence team on Slack</li>
+<li>https://github.com/deepfence/PacketStreamer/issues: Got a feature request or found a bug? Raise an issue</li>
+<li><a href="SECURITY.html">productsecurity <em>at</em> deepfence <em>dot</em> io</a>: Found a security issue? Share it in confidence</li>
+<li>Find out more at <a href="https://deepfence.io/">deepfence.io</a></li>
+</ul>
+<h2 id="security-and-support"><a class="header" href="#security-and-support">Security and Support</a></h2>
+<p>For any security-related issues in the PacketStreamer project, contact <a href="SECURITY.html">productsecurity <em>at</em> deepfence <em>dot</em> io</a>.</p>
+<p>Please file GitHub issues as needed, and join the Deepfence Community <a href="https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X%7EqYx8wMaLt9bGWwkSdgQ">Slack channel</a>.</p>
+<h2 id="license"><a class="header" href="#license">License</a></h2>
+<p>The Deepfence PacketStreamer project (this repository) is offered under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache2 license</a>.</p>
+<p><a href="CONTRIBUTING.html">Contributions</a> to Deepfence PacketStreamer project are similarly accepted under the Apache2 license, as per <a href="https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license">GitHub's inbound=outbound policy</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next" href="quickstart/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next" href="quickstart/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>
