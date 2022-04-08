@@ -1,4 +1,4 @@
-package streamer
+package auth
 
 import (
 	"bytes"
@@ -22,7 +22,7 @@ const keyLenSize = 2
 const respLen = 5
 const respIdx = 4
 
-type authConnIntf interface {
+type AuthConnIntf interface {
 	SetReadDeadline(t time.Time) error
 	Write(b []byte) (int, error)
 	Read(b []byte) (int, error)
@@ -32,7 +32,7 @@ type dfPkt interface {
 	ReadPacketData() (data []byte, ci gopacket.CaptureInfo, err error)
 }
 
-func handleClientAuth(conn authConnIntf, authKey string) error {
+func HandleClientAuth(conn authConnIntf, authKey string) error {
 
 	var authData [authBuffSize]byte
 	var keyLen = make([]byte, keyLenSize)

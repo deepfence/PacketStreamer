@@ -25,8 +25,9 @@ type FileOutputConfig struct {
 }
 
 type ServerOutputConfig struct {
-	Address string
-	Port    *int
+	Address  string
+	Port     *int
+	Protocol *string
 }
 
 type OutputConfig struct {
@@ -90,6 +91,19 @@ func NewConfig(configFileName string) (*Config, error) {
 		return nil, fmt.Errorf("could not parse the config file %s: %w", configFileName, err)
 	}
 
+	var serverOutput *ServerOutputConfig
+	if rawConfig.Output.Server != nil {
+			protocol := "tcp"
+			if rawConfig.Output.Server.Protocol != nil {
+				protocol = *rawConfig.Output.Server.Protocol
+			}
+			serverOutput = &ServerOutputConfig{
+				Address:  rawConfig.Output.Server.Address,
+				Port:     rawConfig.Output.Server.Port,
+				Protocol: &protocol,
+			}
+	}
+
 	compressBlockSize := 65
 	if rawConfig.CompressBlockSize != nil {
 		compressBlockSize = *rawConfig.CompressBlockSize
@@ -116,7 +130,10 @@ func NewConfig(configFileName string) (*Config, error) {
 
 	config := &Config{
 		Input:                  rawConfig.Input,
-		Output:                 rawConfig.Output,
+		Output:                 OutputConfig{
+			File:   rawConfig.Output.File,
+			Server: serverOutput,
+		},
 		TLS:                    rawConfig.TLS,
 		Auth:                   rawConfig.Auth,
 		CompressBlockSize:      compressBlockSize,

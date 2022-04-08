@@ -1,11 +1,11 @@
-package streamer
+package auth
 
 import (
 	"crypto/tls"
 	"errors"
 )
 
-func getTlsConfig(certParam string, keyParam string, rootParam string) (*tls.Config, error) {
+func GetTlsConfig(certParam string, keyParam string, rootParam string) (*tls.Config, error) {
 
 	if len(certParam) == 0 {
 		return nil, errors.New("No cert file provided")
