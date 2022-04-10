@@ -2,6 +2,7 @@ package streamer
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -14,6 +15,7 @@ import (
 	"github.com/google/gopacket/pcapgo"
 
 	"github.com/deepfence/PacketStreamer/pkg/config"
+	"github.com/deepfence/PacketStreamer/pkg/network"
 )
 
 var (
@@ -24,6 +26,7 @@ const (
 	bpfParamInputDelimiter  = ";"
 	bpfParamOutputDelimiter = "  "
 	pktCaptureTimeout       = 5
+	dnsResolveTimeout       = 10
 	maxReadErrCnt           = 10
 	timeoutErrString        = "timeout expired"
 	ioTimeoutString         = "i/o timeout"
@@ -130,7 +133,11 @@ func initInterface(config *config.Config, intfName string, portList []int) (*pca
 		return nil, err
 	}
 
-	intfBpf := strings.Replace(createBpfString(config, portList), bpfParamInputDelimiter, bpfParamOutputDelimiter, -1)
+	bpfString, err := createBpfString(config, net.DefaultResolver, portList)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate BPF filter: %w", err)
+	}
+	intfBpf := strings.Replace(bpfString, bpfParamInputDelimiter, bpfParamOutputDelimiter, -1)
 
 	if intfBpf != "" {
 		bpfStrings := strings.Replace(intfBpf, bpfParamInputDelimiter, bpfParamOutputDelimiter, -1)
@@ -182,8 +189,18 @@ func readPacketOnIntf(config *config.Config, intf *pcap.Handle, pktGatherChannel
 	}
 }
 
+func resolveHost(resolver network.Resolver, host string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*dnsResolveTimeout)
+	defer cancel()
+	ips, err := resolver.LookupHost(ctx, host)
+	if err != nil {
+		return nil, fmt.Errorf("could not resolve host %s: %w", host, err)
+	}
+	return ips, nil
+}
+
 /* this creates a bpf string from the list of ports */
-func createBpfString(c *config.Config, portList []int) string {
+func createBpfString(c *config.Config, resolver network.Resolver, portList []int) (string, error) {
 	var portString []string = make([]string, 0)
 	for _, port := range portList {
 		portVal := strconv.Itoa(port)
@@ -193,32 +210,49 @@ func createBpfString(c *config.Config, portList []int) string {
 
 	if c.Output.Server == nil {
 		if len(portList) == 0 {
-			return ""
+			return "", nil
 		}
 
 		switch c.PcapMode {
 		case config.Allow:
-			return strings.Join(portString, " or ")
+			return strings.Join(portString, " or "), nil
 		case config.Deny:
-			return "not ( " + strings.Join(portString, " or ") + " )"
+			return "not ( " + strings.Join(portString, " or ") + " )", nil
 		default:
 			/* this must be the all-processes mode */
-			return ""
+			return "", nil
 		}
 	} else {
-		defaultBpfString := fmt.Sprintf("not ( port %d )", *c.Output.Server.Port)
+		var hostIPs []string
+		if net.ParseIP(c.Output.Server.Address) == nil {
+			ips, err := resolveHost(resolver, c.Output.Server.Address)
+			if err != nil {
+				return "", fmt.Errorf("unable to resolve host %s: %w", c.Output.Server.Address, err)
+			}
+			hostIPs = append(hostIPs, ips...)
+		} else {
+			hostIPs = append(hostIPs, c.Output.Server.Address)
+		}
+
+		defaultBpfString := ""
+		for i, ip := range hostIPs {
+			defaultBpfString += fmt.Sprintf("not ( dst host %s and port %d )", ip, *c.Output.Server.Port)
+			if i != len(hostIPs)-1 {
+				defaultBpfString += " and "
+			}
+		}
 
 		if len(portList) == 0 {
-			return defaultBpfString
+			return defaultBpfString, nil
 		}
 
 		switch c.PcapMode {
 		case config.Allow:
-			return defaultBpfString + " and " + strings.Join(portString, " or ")
+			return defaultBpfString + " and " + strings.Join(portString, " or "), nil
 		case config.Deny:
-			return defaultBpfString + " and " + "( not ( " + strings.Join(portString, " or ") + " ) )"
+			return defaultBpfString + " and " + "( not ( " + strings.Join(portString, " or ") + " ) )", nil
 		default:
-			return defaultBpfString
+			return defaultBpfString, nil
 		}
 	}
 }
