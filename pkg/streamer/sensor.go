@@ -31,9 +31,9 @@ func StartSensor(config *config.Config, mainSignalChannel chan bool) {
 func sensorOutput(config *config.Config, agentPktOutputChannel chan string, mainSignalChannel chan bool) {
 
 	outputErr := 0
-	dataToSend := make([]byte, config.CompressBlockSize*1024)
-	copy(dataToSend[0:], hdrData[:])
 	payloadMarkerBuff := [...]byte{0x0, 0x0, 0x0, 0x0}
+	dataToSend := make([]byte, config.MaxPayloadLen)
+	copy(dataToSend[0:], hdrData[:])
 	for {
 		if outputErr == maxWriteAttempts {
 			log.Printf("Error while writing %d packets to output. Giving up \n", maxWriteAttempts)
@@ -49,9 +49,9 @@ func sensorOutput(config *config.Config, agentPktOutputChannel chan string, main
 		startIdx := len(hdrData)
 		binary.LittleEndian.PutUint32(payloadMarkerBuff[:], uint32(outputDataLen))
 		copy(dataToSend[startIdx:], payloadMarkerBuff[:])
-		startIdx = startIdx + payloadMarkerLen
+		startIdx += len(payloadMarkerBuff)
 		copy(dataToSend[startIdx:], outputData[:])
-		startIdx = startIdx + outputDataLen
+		startIdx += outputDataLen
 		if writeOutput(config, dataToSend[0:startIdx]) == 1 {
 			break
 		}
@@ -63,8 +63,7 @@ func gatherPkts(config *config.Config, pktGatherChannel, output chan string) {
 
 	var totalLen = 0
 	var currLen = 0
-	var sizeForEncoding = (config.CompressBlockSize * 1024)
-	var packetData = make([]byte, sizeForEncoding)
+	var packetData = make([]byte, config.MaxGatherLen)
 	var tmpPacketData []byte
 
 	for {
@@ -76,7 +75,7 @@ func gatherPkts(config *config.Config, pktGatherChannel, output chan string) {
 		pktsRead += 1
 		tmpPacketData = []byte(tmpChanData)
 		currLen = len(tmpPacketData)
-		if (totalLen + currLen) > sizeForEncoding {
+		if (totalLen + currLen) > config.MaxGatherLen {
 			select {
 			case output <- string(packetData[0:totalLen]):
 			default:
