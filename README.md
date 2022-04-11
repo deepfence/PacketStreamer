@@ -14,8 +14,8 @@ workloads for forensic analysis.
 Primary design goals:
 
 * Stay light, capture and stream, no additional processing
-* Portability, works across virtual machines, Kubernetes and AWS Fargate. Linux
-  and Windows.
+* Portability, works across **virtual machines, Kubernetes and AWS Fargate**. Linux
+  and Windows
 
 PacketStreamer **sensors** are started on the target servers. Sensors capture
 traffic, apply filters, and then stream the traffic to a central reciever.
