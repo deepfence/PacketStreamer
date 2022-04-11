@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	payloadMarkerLen = 4
 	maxNumPkts       = 100
 	connTimeout      = 60
 )
@@ -61,9 +60,9 @@ func readDataFromSocket(hostConn net.Conn, dataBuff []byte, bytesToRead int) err
 
 func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel chan string, sizeChannel chan int) {
 
-	var dataBuff = make([]byte, config.CompressBlockSize*1024)
+	var dataBuff = make([]byte, config.MaxPayloadLen)
 	hdrDataLen := len(hdrData)
-	var totalHdrLen = hdrDataLen + payloadMarkerLen
+	var totalHdrLen = config.MaxHeaderLen
 
 	for {
 		err := readDataFromSocket(clientConn, dataBuff[0:totalHdrLen], totalHdrLen)
@@ -83,7 +82,7 @@ func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel c
 			return
 		}
 		compressedDataLen := binary.LittleEndian.Uint32(dataBuff[hdrDataLen:])
-		if int(compressedDataLen) > ((config.CompressBlockSize * 1024) - totalHdrLen) {
+		if int(compressedDataLen) > (config.MaxEncodedLen - totalHdrLen) {
 			log.Printf("Invalid buffer length %d obtained from client", compressedDataLen)
 			clientConn.Close()
 			close(pktUncompressChannel)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/klauspost/compress/s2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -13,6 +14,10 @@ const (
 	Allow PcapMode = iota
 	Deny
 	All
+)
+
+const (
+	kilobyte = 1024
 )
 
 type InputConfig struct {
@@ -69,7 +74,6 @@ type Config struct {
 	Output                 OutputConfig
 	TLS                    TLSConfig
 	Auth                   AuthConfig
-	CompressBlockSize      int
 	InputPacketLen         int
 	LogFilename            string
 	PcapMode               PcapMode
@@ -77,6 +81,10 @@ type Config struct {
 	CaptureInterfacesPorts map[string][]int
 	IgnorePorts            []int
 	SamplingRate           SamplingRateConfig
+	MaxEncodedLen          int
+	MaxGatherLen           int
+	MaxPayloadLen          int
+	MaxHeaderLen           int
 }
 
 func NewConfig(configFileName string) (*Config, error) {
@@ -119,7 +127,6 @@ func NewConfig(configFileName string) (*Config, error) {
 		Output:                 rawConfig.Output,
 		TLS:                    rawConfig.TLS,
 		Auth:                   rawConfig.Auth,
-		CompressBlockSize:      compressBlockSize,
 		InputPacketLen:         inputPacketLen,
 		LogFilename:            rawConfig.LogFilename,
 		PcapMode:               pcapMode,
@@ -131,6 +138,10 @@ func NewConfig(configFileName string) (*Config, error) {
 			MaxPktsToWrite: 1,
 			MaxTotalPkts:   1,
 		},
+		MaxEncodedLen: s2.MaxEncodedLen(compressBlockSize * kilobyte),
+		MaxGatherLen: compressBlockSize * kilobyte,
+		MaxPayloadLen: s2.MaxEncodedLen(compressBlockSize * kilobyte) + /*hdrData*/4 + /*payloadMarker*/4,
+		MaxHeaderLen: + /*hdrData*/4 + /*payloadMarker*/4,
 	}
 
 	return config, nil

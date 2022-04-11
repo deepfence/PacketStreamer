@@ -8,13 +8,8 @@ import (
 	"github.com/deepfence/PacketStreamer/pkg/config"
 )
 
-const (
-	kilobyte = 1024
-)
-
 func compressPkts(config *config.Config, pktCompressChannel, output chan string) {
-	var sizeForEncoding = (config.CompressBlockSize * kilobyte)
-	var packetData = make([]byte, sizeForEncoding)
+	var packetData = make([]byte, config.MaxEncodedLen)
 
 	for {
 		inputData, chanExitVal := <-pktCompressChannel
@@ -32,9 +27,7 @@ func compressPkts(config *config.Config, pktCompressChannel, output chan string)
 }
 
 func decompressPkts(config *config.Config, pktUncompressChannel, output chan string) {
-
-	var sizeForEncoding = (config.CompressBlockSize * kilobyte)
-	var packetData = make([]byte, sizeForEncoding)
+	var packetData = make([]byte, config.MaxEncodedLen)
 
 	for {
 		decompressBuff, chanExitVal := <-pktUncompressChannel
