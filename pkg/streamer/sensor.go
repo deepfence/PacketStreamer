@@ -29,7 +29,6 @@ func StartSensor(config *config.Config, mainSignalChannel chan bool) {
 }
 
 func sensorOutput(config *config.Config, agentPktOutputChannel chan string, mainSignalChannel chan bool) {
-
 	outputErr := 0
 	payloadMarkerBuff := [...]byte{0x0, 0x0, 0x0, 0x0}
 	dataToSend := make([]byte, config.MaxPayloadLen)

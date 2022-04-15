@@ -4,12 +4,17 @@ import (
 	"errors"
 )
 
+var (
+	ErrNoInputConfigured        = errors.New("no input configured")
+	ErrNoPortConfiguredForInput = errors.New("no port configured for input")
+)
+
 func ValidateReceiverConfig(config *Config) error {
 	if config.Input == nil {
-		return errors.New("no input configured")
+		return ErrNoInputConfigured
 	}
 	if config.Input.Port == nil {
-		return errors.New("no port configured for input")
+		return ErrNoPortConfiguredForInput
 	}
 
 	return nil
