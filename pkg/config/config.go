@@ -23,6 +23,11 @@ const (
 	kilobyte = 1024
 )
 
+const (
+	defaultClientId = "packetstreamer"
+	defaultTopic    = "packetstreamer"
+)
+
 type InputConfig struct {
 	Address string
 	Port    *int
@@ -46,8 +51,16 @@ type S3PluginConfig struct {
 	CannedACL       string             `yaml:"cannedACL,omitempty"`
 }
 
+type KafkaPluginConfig struct {
+	Brokers     string
+	ClientId    string             `yaml:"clientId,omitempty"`
+	Topic       string             `yaml:"topic,omitempty"`
+	MessageSize *bytesize.ByteSize `yaml:"messageSize,omitempty"`
+}
+
 type PluginsConfig struct {
-	S3 *S3PluginConfig
+	S3    *S3PluginConfig
+	Kafka *KafkaPluginConfig
 }
 
 type OutputConfig struct {
@@ -65,8 +78,16 @@ type S3OutputRawConfig struct {
 	CannedACL       *string `yaml:"cannedACL,omitempty"`
 }
 
+type KafkaOutputRawConfig struct {
+	Brokers     string
+	ClientId    *string `yaml:"clientId,omitempty"`
+	Topic       *string `yaml:"topic,omitempty"`
+	MessageSize *string `yaml:"messageSize,omitempty"`
+}
+
 type PluginsRawConfig struct {
-	S3 *S3OutputRawConfig
+	S3    *S3OutputRawConfig
+	Kafka *KafkaOutputRawConfig
 }
 
 type OutputRawConfig struct {
@@ -134,60 +155,16 @@ func NewConfig(configFileName string) (*Config, error) {
 		return nil, fmt.Errorf("could not parse the config file %s: %w", configFileName, err)
 	}
 
-	var s3Config *S3PluginConfig
-	if rawConfig.Output.Plugins.S3 != nil {
-		var (
-			totalFileSize   *bytesize.ByteSize
-			uploadTimeout   time.Duration
-			uploadChunkSize *bytesize.ByteSize
-			cannedACL       string
-		)
+	s3Config, err := populateS3Config(rawConfig)
 
-		if rawConfig.Output.Plugins.S3.TotalFileSize != nil {
-			t, err := bytesize.Parse(*rawConfig.Output.Plugins.S3.TotalFileSize)
-			if err != nil {
-				return nil, fmt.Errorf("could not parse the totalFileSize field %s: %w", *rawConfig.Output.Plugins.S3.TotalFileSize, err)
-			}
-			totalFileSize = &t
-		} else {
-			t := 10 * bytesize.MB
-			totalFileSize = &t
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		if rawConfig.Output.Plugins.S3.UploadTimeout != nil {
-			uploadTimeout, err = time.ParseDuration(*rawConfig.Output.Plugins.S3.UploadTimeout)
-			if err != nil {
-				return nil, fmt.Errorf("could not parse the uploadTimeout field %s: %w", *rawConfig.Output.Plugins.S3.UploadTimeout, err)
-			}
-		} else {
-			uploadTimeout = time.Minute
-		}
+	kafkaConfig, err := populateKafkaConfig(rawConfig)
 
-		if rawConfig.Output.Plugins.S3.UploadChunkSize != nil {
-			u, err := bytesize.Parse(*rawConfig.Output.Plugins.S3.UploadChunkSize)
-			if err != nil {
-				return nil, fmt.Errorf("could not partse the uploadChunkSize field %s: %w", *rawConfig.Output.Plugins.S3.UploadChunkSize, err)
-			}
-			uploadChunkSize = &u
-		} else {
-			u := 5 * bytesize.MB
-			totalFileSize = &u
-		}
-
-		if rawConfig.Output.Plugins.S3.CannedACL != nil {
-			cannedACL = *rawConfig.Output.Plugins.S3.CannedACL
-		} else {
-			cannedACL = string(types.ObjectCannedACLBucketOwnerFullControl)
-		}
-
-		s3Config = &S3PluginConfig{
-			Bucket:          rawConfig.Output.Plugins.S3.Bucket,
-			Region:          rawConfig.Output.Plugins.S3.Region,
-			TotalFileSize:   totalFileSize,
-			UploadChunkSize: uploadChunkSize,
-			UploadTimeout:   uploadTimeout,
-			CannedACL:       cannedACL,
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	compressBlockSize := 65
@@ -220,7 +197,8 @@ func NewConfig(configFileName string) (*Config, error) {
 			File:   rawConfig.Output.File,
 			Server: rawConfig.Output.Server,
 			Plugins: &PluginsConfig{
-				S3: s3Config,
+				S3:    s3Config,
+				Kafka: kafkaConfig,
 			},
 		},
 		TLS:                    rawConfig.TLS,
@@ -243,4 +221,106 @@ func NewConfig(configFileName string) (*Config, error) {
 	}
 
 	return config, nil
+}
+
+func populateKafkaConfig(rawConfig RawConfig) (*KafkaPluginConfig, error) {
+	if rawConfig.Output.Plugins.Kafka == nil {
+		return nil, nil
+	}
+
+	var (
+		clientId    string
+		topic       string
+		messageSize *bytesize.ByteSize
+	)
+
+	if rawConfig.Output.Plugins.Kafka.ClientId != nil {
+		clientId = *rawConfig.Output.Plugins.Kafka.ClientId
+	} else {
+		clientId = defaultClientId
+	}
+
+	if rawConfig.Output.Plugins.Kafka.Topic != nil {
+		topic = *rawConfig.Output.Plugins.Kafka.Topic
+	} else {
+		topic = defaultTopic
+	}
+
+	if rawConfig.Output.Plugins.Kafka.MessageSize != nil {
+		ms, err := bytesize.Parse(*rawConfig.Output.Plugins.Kafka.MessageSize)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse the messageSize field %s: %w", *rawConfig.Output.Plugins.Kafka.MessageSize, err)
+		}
+		messageSize = &ms
+	} else {
+		ms := 65 * bytesize.KB
+		messageSize = &ms
+	}
+
+	return &KafkaPluginConfig{
+		Brokers:     rawConfig.Output.Plugins.Kafka.Brokers,
+		ClientId:    clientId,
+		Topic:       topic,
+		MessageSize: messageSize,
+	}, nil
+}
+
+func populateS3Config(rawConfig RawConfig) (*S3PluginConfig, error) {
+	if rawConfig.Output.Plugins.S3 == nil {
+		return nil, nil
+	}
+
+	var (
+		totalFileSize   *bytesize.ByteSize
+		uploadTimeout   time.Duration
+		uploadChunkSize *bytesize.ByteSize
+		cannedACL       string
+	)
+
+	if rawConfig.Output.Plugins.S3.TotalFileSize != nil {
+		t, err := bytesize.Parse(*rawConfig.Output.Plugins.S3.TotalFileSize)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse the totalFileSize field %s: %w", *rawConfig.Output.Plugins.S3.TotalFileSize, err)
+		}
+		totalFileSize = &t
+	} else {
+		t := 10 * bytesize.MB
+		totalFileSize = &t
+	}
+
+	if rawConfig.Output.Plugins.S3.UploadTimeout != nil {
+		var err error
+		uploadTimeout, err = time.ParseDuration(*rawConfig.Output.Plugins.S3.UploadTimeout)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse the uploadTimeout field %s: %w", *rawConfig.Output.Plugins.S3.UploadTimeout, err)
+		}
+	} else {
+		uploadTimeout = time.Minute
+	}
+
+	if rawConfig.Output.Plugins.S3.UploadChunkSize != nil {
+		u, err := bytesize.Parse(*rawConfig.Output.Plugins.S3.UploadChunkSize)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse the uploadChunkSize field %s: %w", *rawConfig.Output.Plugins.S3.UploadChunkSize, err)
+		}
+		uploadChunkSize = &u
+	} else {
+		u := 5 * bytesize.MB
+		totalFileSize = &u
+	}
+
+	if rawConfig.Output.Plugins.S3.CannedACL != nil {
+		cannedACL = *rawConfig.Output.Plugins.S3.CannedACL
+	} else {
+		cannedACL = string(types.ObjectCannedACLBucketOwnerFullControl)
+	}
+
+	return &S3PluginConfig{
+		Bucket:          rawConfig.Output.Plugins.S3.Bucket,
+		Region:          rawConfig.Output.Plugins.S3.Region,
+		TotalFileSize:   totalFileSize,
+		UploadChunkSize: uploadChunkSize,
+		UploadTimeout:   uploadTimeout,
+		CannedACL:       cannedACL,
+	}, nil
 }

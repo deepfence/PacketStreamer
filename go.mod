@@ -26,6 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.3 // indirect
 	github.com/aws/smithy-go v1.11.2 // indirect
+	github.com/confluentinc/confluent-kafka-go v1.8.2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/inhies/go-bytesize v0.0.0-20210819104631-275770b98743 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
@@ -33,4 +34,5 @@ require (
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/sys v0.0.0-20211210111614-af8b64212486 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/confluentinc/confluent-kafka-go.v1 v1.8.2 // indirect
 )
