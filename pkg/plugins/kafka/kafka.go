@@ -44,19 +44,26 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 		for {
 			select {
 			case pkt := <-inputChan:
-				if len(buffer)+len(pkt) >= p.MessageSize {
-					err := p.Producer.Produce(&kafka.Message{
-						TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
-						Value:          buffer,
-					}, nil)
-
-					if err != nil {
-
-					}
-
-					buffer = p.newBuffer()
-				} else {
+				if len(buffer)+len(pkt) < p.MessageSize {
 					buffer = append(buffer, pkt...)
+				} else {
+					wIndex := 0
+					for wIndex <= len(pkt) {
+						toTake := p.MessageSize - len(buffer)
+						buffer = append(buffer, pkt[wIndex:toTake]...)
+
+						err := p.Producer.Produce(&kafka.Message{
+							TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
+							Value:          buffer,
+						}, nil)
+
+						if err != nil {
+							//TODO: ??? - _probably_ just log this?
+						}
+
+						buffer = p.newBuffer()
+						wIndex += toTake
+					}
 				}
 			case <-ctx.Done():
 				return
