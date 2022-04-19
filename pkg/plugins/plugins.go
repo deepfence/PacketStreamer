@@ -62,5 +62,5 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 }
 
 func pluginsAreDefined(pluginsConfig *config.PluginsConfig) bool {
-	return pluginsConfig != nil && pluginsConfig.S3 != nil
+	return pluginsConfig != nil && (pluginsConfig.S3 != nil || pluginsConfig.Kafka != nil)
 }

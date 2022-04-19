@@ -26,6 +26,7 @@ const (
 const (
 	defaultClientId = "packetstreamer"
 	defaultTopic    = "packetstreamer"
+	defaultAcks     = "all"
 )
 
 type InputConfig struct {
@@ -56,6 +57,7 @@ type KafkaPluginConfig struct {
 	ClientId    string             `yaml:"clientId,omitempty"`
 	Topic       string             `yaml:"topic,omitempty"`
 	MessageSize *bytesize.ByteSize `yaml:"messageSize,omitempty"`
+	Acks        string             `yaml:"acks,omitempty"`
 }
 
 type PluginsConfig struct {
@@ -83,6 +85,7 @@ type KafkaOutputRawConfig struct {
 	ClientId    *string `yaml:"clientId,omitempty"`
 	Topic       *string `yaml:"topic,omitempty"`
 	MessageSize *string `yaml:"messageSize,omitempty"`
+	Acks        *string `yaml:"acks,omitempty"`
 }
 
 type PluginsRawConfig struct {
@@ -231,25 +234,28 @@ func populateKafkaConfig(rawConfig RawConfig) (*KafkaPluginConfig, error) {
 	var (
 		clientId    string
 		topic       string
+		acks        string
 		messageSize *bytesize.ByteSize
 	)
 
-	if rawConfig.Output.Plugins.Kafka.ClientId != nil {
-		clientId = *rawConfig.Output.Plugins.Kafka.ClientId
+	rawKafkaConfig := rawConfig.Output.Plugins.Kafka
+
+	if rawKafkaConfig.ClientId != nil {
+		clientId = *rawKafkaConfig.ClientId
 	} else {
 		clientId = defaultClientId
 	}
 
-	if rawConfig.Output.Plugins.Kafka.Topic != nil {
-		topic = *rawConfig.Output.Plugins.Kafka.Topic
+	if rawKafkaConfig.Topic != nil {
+		topic = *rawKafkaConfig.Topic
 	} else {
 		topic = defaultTopic
 	}
 
-	if rawConfig.Output.Plugins.Kafka.MessageSize != nil {
-		ms, err := bytesize.Parse(*rawConfig.Output.Plugins.Kafka.MessageSize)
+	if rawKafkaConfig.MessageSize != nil {
+		ms, err := bytesize.Parse(*rawKafkaConfig.MessageSize)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse the messageSize field %s: %w", *rawConfig.Output.Plugins.Kafka.MessageSize, err)
+			return nil, fmt.Errorf("could not parse the messageSize field %s: %w", *rawKafkaConfig.MessageSize, err)
 		}
 		messageSize = &ms
 	} else {
@@ -257,11 +263,18 @@ func populateKafkaConfig(rawConfig RawConfig) (*KafkaPluginConfig, error) {
 		messageSize = &ms
 	}
 
+	if rawKafkaConfig.Acks != nil {
+		acks = *rawKafkaConfig.Acks
+	} else {
+		acks = defaultAcks
+	}
+
 	return &KafkaPluginConfig{
 		Brokers:     rawConfig.Output.Plugins.Kafka.Brokers,
 		ClientId:    clientId,
 		Topic:       topic,
 		MessageSize: messageSize,
+		Acks:        acks,
 	}, nil
 }
 
