@@ -55,6 +55,7 @@ func TestPluginStart(t *testing.T) {
 				Topic:       tt.Topic,
 				MessageSize: tt.MessageSize,
 				CloseChan:   make(chan bool),
+				buffer:      make([]byte, 0, tt.MessageSize),
 			}
 
 			inputChan := plugin.Start(context.TODO())

@@ -21,6 +21,7 @@ type Plugin struct {
 	Topic       string
 	MessageSize int
 	CloseChan   chan bool
+	buffer      []byte
 }
 
 func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
@@ -39,6 +40,7 @@ func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
 		Topic:       config.Topic,
 		MessageSize: int(*config.MessageSize),
 		CloseChan:   make(chan bool),
+		buffer:      make([]byte, 0, int(*config.MessageSize)),
 	}, nil
 }
 
@@ -46,49 +48,42 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 	inputChan := make(chan string)
 	go func() {
 		defer p.Producer.Close()
-		buffer := p.newBuffer()
+		p.newBuffer()
 
 		for {
 			select {
 			case pkt, more := <-inputChan:
 				if !more {
-					if len(buffer) > 4 {
-						err := p.flush(buffer)
-						if err != nil {
-							//TODO: ??? - _probably_ just log this?
-						}
-					}
-
-					close(p.CloseChan)
-
+					p.cleanup()
 					return
 				}
 
-				if len(buffer)+len(pkt) < p.MessageSize {
-					buffer = append(buffer, pkt...)
+				if len(p.buffer)+len(pkt) < p.MessageSize {
+					p.buffer = append(p.buffer, pkt...)
 				} else {
 					readFrom := 0
 					for readFrom < len(pkt) {
-						toTake := p.MessageSize - len(buffer)
+						toTake := p.MessageSize - len(p.buffer)
 						if readFrom+toTake > len(pkt) {
-							buffer = append(buffer, pkt[readFrom:]...)
+							p.buffer = append(p.buffer, pkt[readFrom:]...)
 							readFrom = len(pkt)
 
 						} else {
-							buffer = append(buffer, pkt[readFrom:readFrom+toTake]...)
+							p.buffer = append(p.buffer, pkt[readFrom:readFrom+toTake]...)
 							readFrom += toTake
 						}
 
-						err := p.flush(buffer)
+						err := p.flush()
 
 						if err != nil {
 							//TODO: ??? - _probably_ just log this?
 						}
 
-						buffer = p.newBuffer()
+						p.newBuffer()
 					}
 				}
 			case <-ctx.Done():
+				p.cleanup()
 				return
 			}
 		}
@@ -96,16 +91,26 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 	return inputChan
 }
 
-func (p *Plugin) newBuffer() []byte {
-	b := make([]byte, 0, p.MessageSize)
-	//b = append(b, header...)
-	return b
+func (p *Plugin) cleanup() {
+	if len(p.buffer) > 4 {
+		err := p.flush()
+		if err != nil {
+			//TODO: ??? - _probably_ just log this?
+		}
+	}
+
+	close(p.CloseChan)
 }
 
-func (p *Plugin) flush(buffer []byte) error {
+func (p *Plugin) newBuffer() {
+	p.buffer = make([]byte, 0, p.MessageSize)
+	//b = append(b, header...)
+}
+
+func (p *Plugin) flush() error {
 	err := p.Producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
-		Value:          buffer,
+		Value:          p.buffer,
 	}, nil)
 
 	return err
