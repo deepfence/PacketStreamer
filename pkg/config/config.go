@@ -117,7 +117,7 @@ type SamplingRateConfig struct {
 
 type RawConfig struct {
 	Input                  *InputConfig
-	Output                 OutputRawConfig
+	Output                 *OutputRawConfig
 	TLS                    TLSConfig
 	Auth                   AuthConfig
 	CompressBlockSize      *int             `yaml:"compressBlockSize,omitempty"`
@@ -158,16 +158,21 @@ func NewConfig(configFileName string) (*Config, error) {
 		return nil, fmt.Errorf("could not parse the config file %s: %w", configFileName, err)
 	}
 
-	s3Config, err := populateS3Config(rawConfig)
+	var s3Config *S3PluginConfig
+	var kafkaConfig *KafkaPluginConfig
+	if rawConfig.Output != nil && rawConfig.Output.Plugins != nil {
 
-	if err != nil {
-		return nil, err
-	}
+		s3Config, err = populateS3Config(rawConfig)
 
-	kafkaConfig, err := populateKafkaConfig(rawConfig)
+		if err != nil {
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		kafkaConfig, err = populateKafkaConfig(rawConfig)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	compressBlockSize := 65
