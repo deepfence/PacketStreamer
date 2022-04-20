@@ -11,10 +11,16 @@ var (
 	header = []byte{0xde, 0xef, 0xec, 0xe0}
 )
 
+type KafkaProducer interface {
+	Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error
+	Close()
+}
+
 type Plugin struct {
-	Producer    *kafka.Producer
+	Producer    KafkaProducer
 	Topic       string
 	MessageSize int
+	CloseChan   chan bool
 }
 
 func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
@@ -32,6 +38,7 @@ func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
 		Producer:    producer,
 		Topic:       config.Topic,
 		MessageSize: int(*config.MessageSize),
+		CloseChan:   make(chan bool),
 	}, nil
 }
 
@@ -43,19 +50,31 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 
 		for {
 			select {
-			case pkt := <-inputChan:
+			case pkt, more := <-inputChan:
+				if !more {
+					if len(buffer) > 4 {
+						err := p.flush(buffer)
+						if err != nil {
+							//TODO: ??? - _probably_ just log this?
+						}
+					}
+
+					close(p.CloseChan)
+
+					return
+				}
+
 				if len(buffer)+len(pkt) < p.MessageSize {
 					buffer = append(buffer, pkt...)
 				} else {
 					wIndex := 0
-					for wIndex <= len(pkt) {
+					for wIndex < len(pkt) {
 						toTake := p.MessageSize - len(buffer)
-						buffer = append(buffer, pkt[wIndex:toTake]...)
+						buffer = append(buffer, pkt[wIndex:wIndex+toTake]...)
 
-						err := p.Producer.Produce(&kafka.Message{
-							TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
-							Value:          buffer,
-						}, nil)
+						fmt.Println(string(buffer))
+
+						err := p.flush(buffer)
 
 						if err != nil {
 							//TODO: ??? - _probably_ just log this?
@@ -77,4 +96,13 @@ func (p *Plugin) newBuffer() []byte {
 	b := make([]byte, 0, p.MessageSize)
 	b = append(b, header...)
 	return b
+}
+
+func (p *Plugin) flush(buffer []byte) error {
+	err := p.Producer.Produce(&kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
+		Value:          buffer,
+	}, nil)
+
+	return err
 }
