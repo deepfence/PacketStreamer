@@ -21,7 +21,7 @@ type Plugin struct {
 	Topic       string
 	MessageSize int
 	CloseChan   chan bool
-	buffer      []byte
+	Buffer      []byte
 }
 
 func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
@@ -40,7 +40,7 @@ func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
 		Topic:       config.Topic,
 		MessageSize: int(*config.MessageSize),
 		CloseChan:   make(chan bool),
-		buffer:      make([]byte, 0, int(*config.MessageSize)),
+		Buffer:      make([]byte, 0, int(*config.MessageSize)),
 	}, nil
 }
 
@@ -58,18 +58,18 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 					return
 				}
 
-				if len(p.buffer)+len(pkt) < p.MessageSize {
-					p.buffer = append(p.buffer, pkt...)
+				if len(p.Buffer)+len(pkt) < p.MessageSize {
+					p.Buffer = append(p.Buffer, pkt...)
 				} else {
 					readFrom := 0
 					for readFrom < len(pkt) {
-						toTake := p.MessageSize - len(p.buffer)
+						toTake := p.MessageSize - len(p.Buffer)
 						if readFrom+toTake > len(pkt) {
-							p.buffer = append(p.buffer, pkt[readFrom:]...)
+							p.Buffer = append(p.Buffer, pkt[readFrom:]...)
 							readFrom = len(pkt)
 
 						} else {
-							p.buffer = append(p.buffer, pkt[readFrom:readFrom+toTake]...)
+							p.Buffer = append(p.Buffer, pkt[readFrom:readFrom+toTake]...)
 							readFrom += toTake
 						}
 
@@ -92,7 +92,7 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 }
 
 func (p *Plugin) cleanup() {
-	if len(p.buffer) > 4 {
+	if len(p.Buffer) > 4 {
 		err := p.flush()
 		if err != nil {
 			//TODO: ??? - _probably_ just log this?
@@ -103,14 +103,14 @@ func (p *Plugin) cleanup() {
 }
 
 func (p *Plugin) newBuffer() {
-	p.buffer = make([]byte, 0, p.MessageSize)
+	p.Buffer = make([]byte, 0, p.MessageSize)
 	//b = append(b, header...)
 }
 
 func (p *Plugin) flush() error {
 	err := p.Producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
-		Value:          p.buffer,
+		Value:          p.Buffer,
 	}, nil)
 
 	return err
