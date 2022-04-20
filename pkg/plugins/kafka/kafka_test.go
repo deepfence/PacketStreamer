@@ -29,18 +29,25 @@ func TestPluginStart(t *testing.T) {
 		ExpectedMessages []string
 	}{
 		{
-			TestName:         "when a message is longer than messageSize it is split up",
+			TestName:         "message longer than messageSize",
 			Topic:            "test",
 			MessageSize:      8,
 			ToSend:           []string{"regular message"},
 			ExpectedMessages: []string{"regular ", "message"},
 		},
 		{
-			TestName:         "when a message is shorter than messageSize it is sent when the channel is closed",
+			TestName:         "message shorter than messageSize",
 			Topic:            "test",
 			MessageSize:      100,
 			ToSend:           []string{"This is a message that's not long enough"},
 			ExpectedMessages: []string{"This is a message that's not long enough"},
+		},
+		{
+			TestName:         "short message followed by a long message",
+			Topic:            "test",
+			MessageSize:      20,
+			ToSend:           []string{"Hello", ", the second part of this message is longer"},
+			ExpectedMessages: []string{"Hello, the second pa", "rt of this message i", "s longer"},
 		},
 	}
 
