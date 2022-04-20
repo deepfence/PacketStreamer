@@ -67,12 +67,17 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 				if len(buffer)+len(pkt) < p.MessageSize {
 					buffer = append(buffer, pkt...)
 				} else {
-					wIndex := 0
-					for wIndex < len(pkt) {
+					readFrom := 0
+					for readFrom < len(pkt) {
 						toTake := p.MessageSize - len(buffer)
-						buffer = append(buffer, pkt[wIndex:wIndex+toTake]...)
+						if readFrom+toTake > len(pkt) {
+							buffer = append(buffer, pkt[readFrom:]...)
+							readFrom = len(pkt)
 
-						fmt.Println(string(buffer))
+						} else {
+							buffer = append(buffer, pkt[readFrom:readFrom+toTake]...)
+							readFrom += toTake
+						}
 
 						err := p.flush(buffer)
 
@@ -81,7 +86,6 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 						}
 
 						buffer = p.newBuffer()
-						wIndex += toTake
 					}
 				}
 			case <-ctx.Done():
@@ -94,7 +98,7 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 
 func (p *Plugin) newBuffer() []byte {
 	b := make([]byte, 0, p.MessageSize)
-	b = append(b, header...)
+	//b = append(b, header...)
 	return b
 }
 

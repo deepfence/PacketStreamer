@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"reflect"
 	"testing"
@@ -32,9 +31,9 @@ func TestPluginStart(t *testing.T) {
 		{
 			TestName:         "when a message is longer than messageSize, it is split up",
 			Topic:            "test",
-			MessageSize:      7,
+			MessageSize:      8,
 			ToSend:           []string{"regular message"},
-			ExpectedMessages: []string{"regular", " message"},
+			ExpectedMessages: []string{"regular ", "message"},
 		},
 		{
 			TestName:         "when a message is shorter than messageSize, it is sent when the channel is closed",
@@ -45,12 +44,12 @@ func TestPluginStart(t *testing.T) {
 		},
 	}
 
-	mockProducer := &mockKafkaProducer{
-		Messages: make([]string, 0),
-	}
-
 	for _, tt := range tests {
 		t.Run(tt.TestName, func(t *testing.T) {
+			mockProducer := &mockKafkaProducer{
+				Messages: make([]string, 0),
+			}
+
 			plugin := &Plugin{
 				Producer:    mockProducer,
 				Topic:       tt.Topic,
@@ -61,7 +60,6 @@ func TestPluginStart(t *testing.T) {
 			inputChan := plugin.Start(context.TODO())
 			{
 				for _, s := range tt.ToSend {
-					fmt.Printf("sending %s", s)
 					inputChan <- s
 				}
 			}
