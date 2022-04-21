@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/config"
+	"log"
+	"time"
 )
 
 var (
@@ -74,9 +76,12 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 						}
 
 						err := p.flush()
+						time.Sleep(time.Second * 10)
 
 						if err != nil {
-							//TODO: ??? - _probably_ just log this?
+							//TODO: handle this better
+							log.Println(err)
+							return
 						}
 
 						p.newBuffer()
@@ -95,7 +100,8 @@ func (p *Plugin) cleanup() {
 	if len(p.Buffer) > 4 {
 		err := p.flush()
 		if err != nil {
-			//TODO: ??? - _probably_ just log this?
+			//TODO: handle this better
+			log.Println(err)
 		}
 	}
 
@@ -111,6 +117,7 @@ func (p *Plugin) flush() error {
 	err := p.Producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
 		Value:          p.Buffer,
+		Key:            []byte("packetstreamer"),
 	}, nil)
 
 	return err
