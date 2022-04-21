@@ -6,7 +6,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/config"
 	"log"
-	"time"
 )
 
 var (
@@ -76,7 +75,6 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 						}
 
 						err := p.flush()
-						time.Sleep(time.Second * 10)
 
 						if err != nil {
 							//TODO: handle this better
