@@ -135,58 +135,10 @@ func NewConfig(configFileName string) (*Config, error) {
 	}
 
 	var s3Config *S3PluginConfig
-	if rawConfig.Output.Plugins.S3 != nil {
-		var (
-			totalFileSize   *bytesize.ByteSize
-			uploadTimeout   time.Duration
-			uploadChunkSize *bytesize.ByteSize
-			cannedACL       string
-		)
-
-		if rawConfig.Output.Plugins.S3.TotalFileSize != nil {
-			t, err := bytesize.Parse(*rawConfig.Output.Plugins.S3.TotalFileSize)
-			if err != nil {
-				return nil, fmt.Errorf("could not parse the totalFileSize field %s: %w", *rawConfig.Output.Plugins.S3.TotalFileSize, err)
-			}
-			totalFileSize = &t
-		} else {
-			t := 10 * bytesize.MB
-			totalFileSize = &t
-		}
-
-		if rawConfig.Output.Plugins.S3.UploadTimeout != nil {
-			uploadTimeout, err = time.ParseDuration(*rawConfig.Output.Plugins.S3.UploadTimeout)
-			if err != nil {
-				return nil, fmt.Errorf("could not parse the uploadTimeout field %s: %w", *rawConfig.Output.Plugins.S3.UploadTimeout, err)
-			}
-		} else {
-			uploadTimeout = time.Minute
-		}
-
-		if rawConfig.Output.Plugins.S3.UploadChunkSize != nil {
-			u, err := bytesize.Parse(*rawConfig.Output.Plugins.S3.UploadChunkSize)
-			if err != nil {
-				return nil, fmt.Errorf("could not partse the uploadChunkSize field %s: %w", *rawConfig.Output.Plugins.S3.UploadChunkSize, err)
-			}
-			uploadChunkSize = &u
-		} else {
-			u := 5 * bytesize.MB
-			totalFileSize = &u
-		}
-
-		if rawConfig.Output.Plugins.S3.CannedACL != nil {
-			cannedACL = *rawConfig.Output.Plugins.S3.CannedACL
-		} else {
-			cannedACL = string(types.ObjectCannedACLBucketOwnerFullControl)
-		}
-
-		s3Config = &S3PluginConfig{
-			Bucket:          rawConfig.Output.Plugins.S3.Bucket,
-			Region:          rawConfig.Output.Plugins.S3.Region,
-			TotalFileSize:   totalFileSize,
-			UploadChunkSize: uploadChunkSize,
-			UploadTimeout:   uploadTimeout,
-			CannedACL:       cannedACL,
+	if rawConfig.Output.Plugins != nil {
+		s3Config, err = NewS3Config(rawConfig.Output.Plugins.S3)
+		if err != nil {
+			return nil, fmt.Errorf("Could not parse S3 config in %s: %w", configFileName, err)
 		}
 	}
 
@@ -243,4 +195,64 @@ func NewConfig(configFileName string) (*Config, error) {
 	}
 
 	return config, nil
+}
+
+func NewS3Config(rawS3Config *S3OutputRawConfig) (*S3PluginConfig, error) {
+	var (
+		totalFileSize   *bytesize.ByteSize
+		uploadTimeout   time.Duration
+		uploadChunkSize *bytesize.ByteSize
+		cannedACL       string
+		err             error
+	)
+
+	if rawS3Config == nil {
+		return nil, nil
+	}
+
+	if rawS3Config.TotalFileSize != nil {
+		t, err := bytesize.Parse(*rawS3Config.TotalFileSize)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse the totalFileSize field %s: %w", *rawS3Config.TotalFileSize, err)
+		}
+		totalFileSize = &t
+	} else {
+		t := 10 * bytesize.MB
+		totalFileSize = &t
+	}
+
+	if rawS3Config.UploadTimeout != nil {
+		uploadTimeout, err = time.ParseDuration(*rawS3Config.UploadTimeout)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse the uploadTimeout field %s: %w", *rawS3Config.UploadTimeout, err)
+		}
+	} else {
+		uploadTimeout = time.Minute
+	}
+
+	if rawS3Config.UploadChunkSize != nil {
+		u, err := bytesize.Parse(*rawS3Config.UploadChunkSize)
+		if err != nil {
+			return nil, fmt.Errorf("could not partse the uploadChunkSize field %s: %w", *rawS3Config.UploadChunkSize, err)
+		}
+		uploadChunkSize = &u
+	} else {
+		u := 5 * bytesize.MB
+		totalFileSize = &u
+	}
+
+	if rawS3Config.CannedACL != nil {
+		cannedACL = *rawS3Config.CannedACL
+	} else {
+		cannedACL = string(types.ObjectCannedACLBucketOwnerFullControl)
+	}
+
+	return &S3PluginConfig{
+		Bucket:          rawS3Config.Bucket,
+		Region:          rawS3Config.Region,
+		TotalFileSize:   totalFileSize,
+		UploadChunkSize: uploadChunkSize,
+		UploadTimeout:   uploadTimeout,
+		CannedACL:       cannedACL,
+	}, nil
 }
