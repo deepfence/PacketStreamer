@@ -58,6 +58,7 @@ type KafkaPluginConfig struct {
 	Topic       string             `yaml:"topic,omitempty"`
 	MessageSize *bytesize.ByteSize `yaml:"messageSize,omitempty"`
 	Acks        string             `yaml:"acks,omitempty"`
+	FileSize    *bytesize.ByteSize `yaml:"fileSize,omitempty"`
 }
 
 type PluginsConfig struct {
@@ -86,6 +87,7 @@ type KafkaOutputRawConfig struct {
 	Topic       *string `yaml:"topic,omitempty"`
 	MessageSize *string `yaml:"messageSize,omitempty"`
 	Acks        *string `yaml:"acks,omitempty"`
+	FileSize    *string `yaml:"fileSize,omitempty"`
 }
 
 type PluginsRawConfig struct {
@@ -241,6 +243,7 @@ func populateKafkaConfig(rawConfig RawConfig) (*KafkaPluginConfig, error) {
 		topic       string
 		acks        string
 		messageSize *bytesize.ByteSize
+		fileSize    *bytesize.ByteSize
 	)
 
 	rawKafkaConfig := rawConfig.Output.Plugins.Kafka
@@ -274,12 +277,24 @@ func populateKafkaConfig(rawConfig RawConfig) (*KafkaPluginConfig, error) {
 		acks = defaultAcks
 	}
 
+	if rawKafkaConfig.FileSize != nil {
+		fs, err := bytesize.Parse(*rawKafkaConfig.FileSize)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse the fileSize field %s: %w", *rawKafkaConfig.FileSize, err)
+		}
+		fileSize = &fs
+	} else {
+		fs := 1 * bytesize.MB
+		fileSize = &fs
+	}
+
 	return &KafkaPluginConfig{
 		Brokers:     rawConfig.Output.Plugins.Kafka.Brokers,
 		ClientId:    clientId,
 		Topic:       topic,
 		MessageSize: messageSize,
 		Acks:        acks,
+		FileSize:    fileSize,
 	}, nil
 }
 
