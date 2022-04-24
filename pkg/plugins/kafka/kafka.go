@@ -81,6 +81,7 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 				if len(p.CurrentFile.Buffer)+len(pkt) < p.MessageSize {
 					p.CurrentFile.Buffer = append(p.CurrentFile.Buffer, pkt...)
 				} else {
+					// chunk the message so that it fits in our configured message size
 					readFrom := 0
 					for readFrom < len(pkt) {
 						toTake := p.MessageSize - len(p.CurrentFile.Buffer)
