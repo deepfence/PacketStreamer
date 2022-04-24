@@ -2,8 +2,6 @@ input:
   address: 0.0.0.0
   port: 8081
 output:
-  file:
-    path: /dev/null
   plugins:
     kafka:
       brokers: 0.0.0.0:9092

@@ -10,16 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/deepfence/PacketStreamer/pkg/config"
+	"github.com/deepfence/PacketStreamer/pkg/file"
 	"log"
 	"time"
 )
 
 const (
 	MaxParts = 10_000
-)
-
-var (
-	header = []byte{0xde, 0xef, 0xec, 0xe0}
 )
 
 type Plugin struct {
@@ -96,7 +93,7 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 						return
 					}
 
-					mpu.appendToBuffer(header)
+					mpu.appendToBuffer(file.Header)
 
 					if err != nil {
 						log.Printf("error adding header to buffer, stopping... - %v\n", err)

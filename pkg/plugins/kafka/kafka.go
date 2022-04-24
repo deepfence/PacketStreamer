@@ -5,16 +5,26 @@ import (
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/config"
+	"github.com/deepfence/PacketStreamer/pkg/file"
+	"github.com/google/uuid"
 	"log"
 )
 
-var (
-	header = []byte{0xde, 0xef, 0xec, 0xe0}
-)
+var ()
 
 type KafkaProducer interface {
 	Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error
 	Close()
+}
+
+type File struct {
+	Id     string
+	Buffer []byte
+	Sent   uint64
+}
+
+func (f *File) newBuffer(size int) {
+	f.Buffer = make([]byte, 0, size)
 }
 
 type Plugin struct {
@@ -22,7 +32,8 @@ type Plugin struct {
 	Topic       string
 	MessageSize int
 	CloseChan   chan bool
-	Buffer      []byte
+	FileSize    uint64
+	CurrentFile *File
 }
 
 func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
@@ -41,15 +52,24 @@ func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
 		Topic:       config.Topic,
 		MessageSize: int(*config.MessageSize),
 		CloseChan:   make(chan bool),
-		Buffer:      make([]byte, 0, int(*config.MessageSize)),
 	}, nil
 }
 
+func (p *Plugin) newFile(id string, messageSize int) {
+	p.CurrentFile = &File{
+		Id:     id,
+		Buffer: make([]byte, 0, messageSize),
+	}
+
+	p.CurrentFile.Buffer = append(p.CurrentFile.Buffer, file.Header...)
+}
+
+//Start
 func (p *Plugin) Start(ctx context.Context) chan<- string {
 	inputChan := make(chan string)
 	go func() {
 		defer p.Producer.Close()
-		p.newBuffer()
+		p.newFile(generateFileId(), p.MessageSize)
 
 		for {
 			select {
@@ -59,18 +79,18 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 					return
 				}
 
-				if len(p.Buffer)+len(pkt) < p.MessageSize {
-					p.Buffer = append(p.Buffer, pkt...)
+				if len(p.CurrentFile.Buffer)+len(pkt) < p.MessageSize {
+					p.CurrentFile.Buffer = append(p.CurrentFile.Buffer, pkt...)
 				} else {
 					readFrom := 0
 					for readFrom < len(pkt) {
-						toTake := p.MessageSize - len(p.Buffer)
+						toTake := p.MessageSize - len(p.CurrentFile.Buffer)
 						if readFrom+toTake > len(pkt) {
-							p.Buffer = append(p.Buffer, pkt[readFrom:]...)
+							p.CurrentFile.Buffer = append(p.CurrentFile.Buffer, pkt[readFrom:]...)
 							readFrom = len(pkt)
 
 						} else {
-							p.Buffer = append(p.Buffer, pkt[readFrom:readFrom+toTake]...)
+							p.CurrentFile.Buffer = append(p.CurrentFile.Buffer, pkt[readFrom:readFrom+toTake]...)
 							readFrom += toTake
 						}
 
@@ -82,7 +102,11 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 							return
 						}
 
-						p.newBuffer()
+						if p.CurrentFile.Sent >= p.FileSize {
+							p.newFile(generateFileId(), p.MessageSize)
+						} else {
+							p.CurrentFile.newBuffer(p.MessageSize)
+						}
 					}
 				}
 			case <-ctx.Done():
@@ -95,7 +119,8 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 }
 
 func (p *Plugin) cleanup() {
-	if len(p.Buffer) > 4 {
+	// we only need to clean up if there's actually data to send
+	if len(p.CurrentFile.Buffer) > len(file.Header) {
 		err := p.flush()
 		if err != nil {
 			//TODO: handle this better
@@ -106,17 +131,18 @@ func (p *Plugin) cleanup() {
 	close(p.CloseChan)
 }
 
-func (p *Plugin) newBuffer() {
-	p.Buffer = make([]byte, 0, p.MessageSize)
-	//b = append(b, header...)
-}
-
 func (p *Plugin) flush() error {
 	err := p.Producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
-		Value:          p.Buffer,
-		Key:            []byte("packetstreamer"),
+		Value:          p.CurrentFile.Buffer,
+		Key:            []byte(p.CurrentFile.Id),
 	}, nil)
 
+	p.CurrentFile.Sent += uint64(len(p.CurrentFile.Buffer))
+
 	return err
+}
+
+func generateFileId() string {
+	return uuid.New().String()
 }

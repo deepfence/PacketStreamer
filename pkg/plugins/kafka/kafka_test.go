@@ -2,7 +2,9 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/deepfence/PacketStreamer/pkg/file"
 	"reflect"
 	"testing"
 )
@@ -33,21 +35,21 @@ func TestPluginStart(t *testing.T) {
 			Topic:            "test",
 			MessageSize:      8,
 			ToSend:           []string{"regular message"},
-			ExpectedMessages: []string{"regular ", "message"},
+			ExpectedMessages: []string{fmt.Sprintf("%sregu", file.Header), "lar mess", "age"},
 		},
 		{
 			TestName:         "message shorter than messageSize",
 			Topic:            "test",
 			MessageSize:      100,
 			ToSend:           []string{"This is a message that's not long enough"},
-			ExpectedMessages: []string{"This is a message that's not long enough"},
+			ExpectedMessages: []string{fmt.Sprintf("%sThis is a message that's not long enough", file.Header)},
 		},
 		{
 			TestName:         "short message followed by a long message",
 			Topic:            "test",
 			MessageSize:      20,
 			ToSend:           []string{"Hello", ", the second part of this message is longer"},
-			ExpectedMessages: []string{"Hello, the second pa", "rt of this message i", "s longer"},
+			ExpectedMessages: []string{fmt.Sprintf("%sHello, the secon", file.Header), "d part of this messa", "ge is longer"},
 		},
 	}
 
@@ -61,8 +63,8 @@ func TestPluginStart(t *testing.T) {
 				Producer:    mockProducer,
 				Topic:       tt.Topic,
 				MessageSize: tt.MessageSize,
+				FileSize:    getFileSizeFromMessages(t, tt.ToSend),
 				CloseChan:   make(chan bool),
-				Buffer:      make([]byte, 0, tt.MessageSize),
 			}
 
 			inputChan := plugin.Start(context.TODO())
@@ -80,4 +82,15 @@ func TestPluginStart(t *testing.T) {
 			}
 		})
 	}
+}
+
+func getFileSizeFromMessages(t *testing.T, sentMessages []string) uint64 {
+	t.Helper()
+	var fileSize uint64 = uint64(len(file.Header))
+
+	for _, m := range sentMessages {
+		fileSize += uint64(len(m))
+	}
+
+	return fileSize
 }
