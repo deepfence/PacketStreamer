@@ -10,8 +10,6 @@ import (
 	"log"
 )
 
-var ()
-
 type KafkaProducer interface {
 	Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error
 	Close()
@@ -51,6 +49,7 @@ func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
 		Producer:    producer,
 		Topic:       config.Topic,
 		MessageSize: int(*config.MessageSize),
+		FileSize:    uint64(*config.FileSize),
 		CloseChan:   make(chan bool),
 	}, nil
 }
@@ -64,7 +63,7 @@ func (p *Plugin) newFile(id string, messageSize int) {
 	p.CurrentFile.Buffer = append(p.CurrentFile.Buffer, file.Header...)
 }
 
-//Start
+//Start produces Kafka messages containing data that is written to the returned channel
 func (p *Plugin) Start(ctx context.Context) chan<- string {
 	inputChan := make(chan string)
 	go func() {
