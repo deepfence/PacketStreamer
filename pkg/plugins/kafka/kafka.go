@@ -106,6 +106,7 @@ func (p *Plugin) Start(ctx context.Context) pluginTypes.RunningPlugin {
 
 						if err != nil {
 							errorChan <- err
+							return
 						}
 
 						if p.CurrentFile.Sent >= p.FileSize {

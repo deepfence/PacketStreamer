@@ -7,6 +7,7 @@ import (
 	"github.com/deepfence/PacketStreamer/pkg/plugins/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/s3"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/types"
+	"log"
 )
 
 //Start uses the provided config to start the execution of any plugin outputs that have been defined.
@@ -25,8 +26,14 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 			return nil, fmt.Errorf("error starting S3 plugin, %v", err)
 		}
 
-		s3Chan := s3plugin.Start(ctx)
-		plugins = append(plugins, s3Chan)
+		startedPlugin := s3plugin.Start(ctx)
+		plugins = append(plugins, startedPlugin)
+
+		go func() {
+			for e := range startedPlugin.Errors {
+				log.Println(e)
+			}
+		}()
 	}
 
 	if config.Output.Plugins.Kafka != nil {
@@ -36,8 +43,14 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 			return nil, fmt.Errorf("error starting Kafka plugin, %v", err)
 		}
 
-		kafkaChan := kafkaPlugin.Start(ctx)
-		plugins = append(plugins, kafkaChan)
+		startedPlugin := kafkaPlugin.Start(ctx)
+		plugins = append(plugins, startedPlugin)
+
+		go func() {
+			for e := range startedPlugin.Errors {
+				log.Println(e)
+			}
+		}()
 	}
 
 	inputChan := make(chan string)
