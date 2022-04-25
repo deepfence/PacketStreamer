@@ -1,0 +1,9 @@
+input:
+  address: 0.0.0.0
+  port: 8081
+output:
+  plugins:
+    kafka:
+      brokers: 0.0.0.0:9092
+      clientId: packetstreamer
+      topic: packetstreamer
