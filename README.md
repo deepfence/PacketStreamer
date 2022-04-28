@@ -1,4 +1,4 @@
-[![Book](https://img.shields.io/website?url=https%3A%2F%2Fdeepfence.github.io%2FPacketStreamer%2F)](https://deepfence.github.io/PacketStreamer/)
+[![Documentation](https://img.shields.io/badge/documentation-read-green)](https://deepfence.github.io/PacketStreamer/)
 [![GitHub license](https://img.shields.io/github/license/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/blob/master/LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/issues)
@@ -49,6 +49,37 @@ data from a single Kubernetes pod.
 Use PacketStreamer if you need a lightweight, efficient method to collect raw
 network data from multiple machines for central logging and analysis.
 
+## Quick Start
+
+For full instructions, refer to the [PacketStreamer Documentation](https://deepfence.github.io/PacketStreamer/).
+
+You will need to install the golang toolchain and `libpcap-dev` before building PacketStreamer.
+  
+```shell script
+# Pre-requisites (Ubuntu): sudo apt install golang-go libpcap-dev
+git clone https://github.com/deepfence/PacketStreamer.git
+cd PacketStreamer/
+make
+```
+
+Run a PacketStreamer receiver, listening on port **8081** and writing pcap output to **/tmp/dump_file** (see [receiver.yaml](contrib/config/receiver.yaml)):
+  
+```shell script
+./packetstreamer receiver --config ./contrib/config/receiver.yaml
+```
+
+Run one or more PacketStreamer sensors on local and remote hosts. Edit the **server address** in [sensor.yaml](contrib/config/sensor-local.yaml):
+
+```shell script
+# run on the target hosts to capture and forward traffic
+
+# copy and edit the sample sensor-local.yaml file, and add the address of the receiver host
+cp ./contrib/config/sensor-local.yaml ./contrib/config/sensor.yaml
+
+./packetstreamer sensor --config ./contrib/config/sensor.yaml
+```
+
+  
 ## Who uses PacketStreamer?
 
  * Deepfence [ThreatStryker](https://deepfence.io/threatstryker/) uses
@@ -59,10 +90,11 @@ network data from multiple machines for central logging and analysis.
 
 Thank you for using PacketStreamer.
 
-* [<img src="https://img.shields.io/badge/slack-@deepfence-brightgreen.svg?logo=slack">](https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X~qYx8wMaLt9bGWwkSdgQ) Got a question, need some help?  Find the Deepfence team on Slack
-* https://github.com/deepfence/PacketStreamer/issues: Got a feature request or found a bug? Raise an issue
-* [productsecurity *at* deepfence *dot* io](SECURITY.md): Found a security issue? Share it in confidence
-* Find out more at [deepfence.io](https://deepfence.io/)
+ * [<img src="https://img.shields.io/badge/documentation-read-green">](https://deepfence.github.io/PacketStreamer/) Start with the documentation
+ * [<img src="https://img.shields.io/badge/slack-@deepfence-blue.svg?logo=slack">](https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X~qYx8wMaLt9bGWwkSdgQ) Got a question, need some help?  Find the Deepfence team on Slack
+ * [![GitHub issues](https://img.shields.io/github/issues/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/issues) Got a feature request or found a bug? Raise an issue
+ * [productsecurity *at* deepfence *dot* io](SECURITY.md): Found a security issue? Share it in confidence
+ * Find out more at [deepfence.io](https://deepfence.io/)
 
 ## Security and Support
 
