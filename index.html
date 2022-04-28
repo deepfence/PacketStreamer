@@ -142,7 +142,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p><a href="https://deepfence.github.io/PacketStreamer/"><img src="https://img.shields.io/website?url=https%3A%2F%2Fdeepfence.github.io%2FPacketStreamer%2F" alt="Book" /></a>
+                        <p><a href="https://deepfence.github.io/PacketStreamer/"><img src="https://img.shields.io/badge/documentation-read-green" alt="Documentation" /></a>
 <a href="https://github.com/deepfence/PacketStreamer/blob/master/LICENSE"><img src="https://img.shields.io/github/license/deepfence/PacketStreamer" alt="GitHub license" /></a>
 <a href="https://github.com/deepfence/PacketStreamer/stargazers"><img src="https://img.shields.io/github/stars/deepfence/PacketStreamer" alt="GitHub stars" /></a>
 <a href="https://github.com/deepfence/PacketStreamer/issues"><img src="https://img.shields.io/github/issues/deepfence/PacketStreamer" alt="GitHub issues" /></a>
@@ -182,6 +182,25 @@ collector. <a href="https://github.com/eldadru/ksniff">ksniff</a> captures raw p
 data from a single Kubernetes pod.</p>
 <p>Use PacketStreamer if you need a lightweight, efficient method to collect raw
 network data from multiple machines for central logging and analysis.</p>
+<h2 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h2>
+<p>For full instructions, refer to the <a href="https://deepfence.github.io/PacketStreamer/">PacketStreamer Documentation</a>.</p>
+<p>You will need to install the golang toolchain and <code>libpcap-dev</code> before building PacketStreamer.</p>
+<pre><code class="language-shell script"># Pre-requisites (Ubuntu): sudo apt install golang-go libpcap-dev
+git clone https://github.com/deepfence/PacketStreamer.git
+cd PacketStreamer/
+make
+</code></pre>
+<p>Run a PacketStreamer receiver, listening on port <strong>8081</strong> and writing pcap output to <strong>/tmp/dump_file</strong> (see <a href="contrib/config/receiver.yaml">receiver.yaml</a>):</p>
+<pre><code class="language-shell script">./packetstreamer receiver --config ./contrib/config/receiver.yaml
+</code></pre>
+<p>Run one or more PacketStreamer sensors on local and remote hosts. Edit the <strong>server address</strong> in <a href="contrib/config/sensor-local.yaml">sensor.yaml</a>:</p>
+<pre><code class="language-shell script"># run on the target hosts to capture and forward traffic
+
+# copy and edit the sample sensor-local.yaml file, and add the address of the receiver host
+cp ./contrib/config/sensor-local.yaml ./contrib/config/sensor.yaml
+
+./packetstreamer sensor --config ./contrib/config/sensor.yaml
+</code></pre>
 <h2 id="who-uses-packetstreamer"><a class="header" href="#who-uses-packetstreamer">Who uses PacketStreamer?</a></h2>
 <ul>
 <li>Deepfence <a href="https://deepfence.io/threatstryker/">ThreatStryker</a> uses
@@ -191,8 +210,9 @@ and anomaly detection.</li>
 <h2 id="get-in-touch"><a class="header" href="#get-in-touch">Get in touch</a></h2>
 <p>Thank you for using PacketStreamer.</p>
 <ul>
-<li><a href="https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X%7EqYx8wMaLt9bGWwkSdgQ"><img src="https://img.shields.io/badge/slack-@deepfence-brightgreen.svg?logo=slack"></a> Got a question, need some help?  Find the Deepfence team on Slack</li>
-<li>https://github.com/deepfence/PacketStreamer/issues: Got a feature request or found a bug? Raise an issue</li>
+<li><a href="https://deepfence.github.io/PacketStreamer/"><img src="https://img.shields.io/badge/documentation-read-green"></a> Start with the documentation</li>
+<li><a href="https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X%7EqYx8wMaLt9bGWwkSdgQ"><img src="https://img.shields.io/badge/slack-@deepfence-blue.svg?logo=slack"></a> Got a question, need some help?  Find the Deepfence team on Slack</li>
+<li><a href="https://github.com/deepfence/PacketStreamer/issues"><img src="https://img.shields.io/github/issues/deepfence/PacketStreamer" alt="GitHub issues" /></a> Got a feature request or found a bug? Raise an issue</li>
 <li><a href="SECURITY.html">productsecurity <em>at</em> deepfence <em>dot</em> io</a>: Found a security issue? Share it in confidence</li>
 <li>Find out more at <a href="https://deepfence.io/">deepfence.io</a></li>
 </ul>
