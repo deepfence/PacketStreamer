@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/deepfence/PacketStreamer/pkg/config"
 	"github.com/deepfence/PacketStreamer/pkg/file"
+	pluginTypes "github.com/deepfence/PacketStreamer/pkg/plugins/types"
 	"log"
 	"time"
 )
@@ -73,11 +74,18 @@ func (mpu *MultipartUpload) appendToBuffer(data []byte) {
 	mpu.Buffer = append(mpu.Buffer, data...)
 }
 
-//Start returns a write-only channel to which packet chunks should be written should they wish to be streamed to S3.
-//It is the responsibility of the caller to close the returned channel.
-func (p *Plugin) Start(ctx context.Context) chan<- string {
+//Start returns a struct which contains a write-only channel to which packet chunks should be written should they wish to be streamed to S3.
+//Errors produced by this method will be sent on the contained Error channel.
+//It is the responsibility of the caller to close the returned Input channel.
+//This method will handle closure of the returned Error channel.
+func (p *Plugin) Start(ctx context.Context) pluginTypes.RunningPlugin {
 	inputChan := make(chan string)
+	errorChan := make(chan error)
 	go func() {
+		defer func() {
+			close(errorChan)
+		}()
+
 		payloadMarker := []byte{0x0, 0x0, 0x0, 0x0}
 		var mpu *MultipartUpload
 
@@ -89,14 +97,14 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 					mpu, err = p.createMultipartUpload(ctx)
 
 					if err != nil {
-						log.Printf("error creating multipart upload, stopping... - %v\n", err)
+						errorChan <- fmt.Errorf("error creating multipart upload, stopping... - %v\n", err)
 						return
 					}
 
 					mpu.appendToBuffer(file.Header)
 
 					if err != nil {
-						log.Printf("error adding header to buffer, stopping... - %v\n", err)
+						errorChan <- fmt.Errorf("error adding header to buffer, stopping... - %v\n", err)
 						return
 					}
 				}
@@ -114,14 +122,14 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 					err := p.completeUpload(ctx, mpu)
 
 					if err != nil {
-						log.Printf("error completing multipart upload, stopping... - %v\n", err)
+						errorChan <- fmt.Errorf("error completing multipart upload, stopping... - %v\n", err)
 						return
 					}
 
 					mpu, err = p.createMultipartUpload(ctx)
 
 					if err != nil {
-						log.Printf("error creating multipart upload, stopping... - %v\n", err)
+						errorChan <- fmt.Errorf("error creating multipart upload, stopping... - %v\n", err)
 						return
 					}
 
@@ -132,14 +140,14 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 					err := p.completeUpload(ctx, mpu)
 
 					if err != nil {
-						log.Printf("error completing multipart upload, stopping... - %v\n", err)
+						errorChan <- fmt.Errorf("error completing multipart upload, stopping... - %v\n", err)
 						return
 					}
 
 					mpu, err = p.createMultipartUpload(ctx)
 
 					if err != nil {
-						log.Printf("error creating multipart upload, stopping... - %v\n", err)
+						errorChan <- fmt.Errorf("error creating multipart upload, stopping... - %v\n", err)
 						return
 					}
 				}
@@ -154,7 +162,7 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 				mpu, err = p.createMultipartUpload(ctx)
 
 				if err != nil {
-					log.Printf("error creating multipart upload, stopping... - %v\n", err)
+					errorChan <- fmt.Errorf("error creating multipart upload, stopping... - %v\n", err)
 					return
 				}
 			case <-ctx.Done():
@@ -163,7 +171,10 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 			}
 		}
 	}()
-	return inputChan
+	return pluginTypes.RunningPlugin{
+		Input:  inputChan,
+		Errors: errorChan,
+	}
 }
 
 func (p *Plugin) flushData(ctx context.Context, mpu *MultipartUpload) error {

@@ -67,13 +67,13 @@ func TestPluginStart(t *testing.T) {
 				CloseChan:   make(chan bool),
 			}
 
-			inputChan := plugin.Start(context.TODO())
+			p := plugin.Start(context.TODO())
 			{
 				for _, s := range tt.ToSend {
-					inputChan <- s
+					p.Input <- s
 				}
 			}
-			close(inputChan)
+			close(p.Input)
 
 			<-plugin.CloseChan
 
@@ -86,7 +86,7 @@ func TestPluginStart(t *testing.T) {
 
 func getFileSizeFromMessages(t *testing.T, sentMessages []string) uint64 {
 	t.Helper()
-	var fileSize uint64 = uint64(len(file.Header))
+	var fileSize = uint64(len(file.Header))
 
 	for _, m := range sentMessages {
 		fileSize += uint64(len(m))

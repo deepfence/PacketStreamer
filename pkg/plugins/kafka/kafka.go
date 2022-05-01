@@ -6,8 +6,8 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/config"
 	"github.com/deepfence/PacketStreamer/pkg/file"
+	pluginTypes "github.com/deepfence/PacketStreamer/pkg/plugins/types"
 	"github.com/google/uuid"
-	"log"
 )
 
 type KafkaProducer interface {
@@ -63,18 +63,26 @@ func (p *Plugin) newFile(id string, messageSize int) {
 	p.CurrentFile.Buffer = append(p.CurrentFile.Buffer, file.Header...)
 }
 
-//Start produces Kafka messages containing data that is written to the returned channel
-func (p *Plugin) Start(ctx context.Context) chan<- string {
+//Start returns a struct which contains a write-only channel to which packet chunks should be written should they wish to be streamed to Kafka.
+//Errors produced by this method will be sent on the contained Error channel.
+//It is the responsibility of the caller to close the returned Input channel.
+//This method will handle closure of the returned Error channel.
+func (p *Plugin) Start(ctx context.Context) pluginTypes.RunningPlugin {
 	inputChan := make(chan string)
+	errorChan := make(chan error)
 	go func() {
-		defer p.Producer.Close()
+		defer func() {
+			p.Producer.Close()
+			close(errorChan)
+		}()
+
 		p.newFile(generateFileId(), p.MessageSize)
 
 		for {
 			select {
 			case pkt, more := <-inputChan:
 				if !more {
-					p.cleanup()
+					p.cleanup(errorChan)
 					return
 				}
 
@@ -97,8 +105,7 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 						err := p.flush()
 
 						if err != nil {
-							//TODO: handle this better
-							log.Println(err)
+							errorChan <- err
 							return
 						}
 
@@ -110,21 +117,23 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 					}
 				}
 			case <-ctx.Done():
-				p.cleanup()
+				p.cleanup(errorChan)
 				return
 			}
 		}
 	}()
-	return inputChan
+	return pluginTypes.RunningPlugin{
+		Input:  inputChan,
+		Errors: errorChan,
+	}
 }
 
-func (p *Plugin) cleanup() {
+func (p *Plugin) cleanup(errorChan chan error) {
 	// we only need to clean up if there's actually data to send
 	if len(p.CurrentFile.Buffer) > len(file.Header) {
 		err := p.flush()
 		if err != nil {
-			//TODO: handle this better
-			log.Println(err)
+			errorChan <- err
 		}
 	}
 

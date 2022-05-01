@@ -6,6 +6,8 @@ import (
 	"github.com/deepfence/PacketStreamer/pkg/config"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/s3"
+	"github.com/deepfence/PacketStreamer/pkg/plugins/types"
+	"log"
 )
 
 //Start uses the provided config to start the execution of any plugin outputs that have been defined.
@@ -15,7 +17,7 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 		return nil, nil
 	}
 
-	var plugins []chan<- string
+	var plugins []types.RunningPlugin
 
 	if config.Output.Plugins.S3 != nil {
 		s3plugin, err := s3.NewPlugin(ctx, config.Output.Plugins.S3)
@@ -24,8 +26,14 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 			return nil, fmt.Errorf("error starting S3 plugin, %v", err)
 		}
 
-		s3Chan := s3plugin.Start(ctx)
-		plugins = append(plugins, s3Chan)
+		startedPlugin := s3plugin.Start(ctx)
+		plugins = append(plugins, startedPlugin)
+
+		go func() {
+			for e := range startedPlugin.Errors {
+				log.Println(e)
+			}
+		}()
 	}
 
 	if config.Output.Plugins.Kafka != nil {
@@ -35,15 +43,21 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 			return nil, fmt.Errorf("error starting Kafka plugin, %v", err)
 		}
 
-		kafkaChan := kafkaPlugin.Start(ctx)
-		plugins = append(plugins, kafkaChan)
+		startedPlugin := kafkaPlugin.Start(ctx)
+		plugins = append(plugins, startedPlugin)
+
+		go func() {
+			for e := range startedPlugin.Errors {
+				log.Println(e)
+			}
+		}()
 	}
 
 	inputChan := make(chan string)
 	go func() {
 		defer func() {
 			for _, p := range plugins {
-				close(p)
+				close(p.Input)
 			}
 		}()
 
@@ -51,7 +65,7 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 			select {
 			case pkt := <-inputChan:
 				for _, p := range plugins {
-					p <- pkt
+					p.Input <- pkt
 				}
 			case <-ctx.Done():
 				return
