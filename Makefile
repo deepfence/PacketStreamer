@@ -10,7 +10,7 @@ ifeq ($(RELEASE),1)
 	LDFLAGS += -s -w
 endif
 
-.PHONY: all build docker-bin docker-image
+.PHONY: all build docker-bin docker-image test
 
 all: build
 
@@ -25,3 +25,6 @@ docker-image:
 
 docker-push:
 	docker push $(IMAGE)
+
+test:
+	go test ./...
