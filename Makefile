@@ -1,9 +1,11 @@
 IMAGE ?= docker.io/deepfenceio/deepfence_packetstreamer
 CC ?= gcc
 LDFLAGS ?=
+TAGS ?=
 STATIC ?= 0
 ifeq ($(STATIC),1)
 	LDFLAGS += -linkmode external -extldflags "-static"
+	TAGS += musl
 endif
 RELEASE ?= 0
 ifeq ($(RELEASE),1)
@@ -15,7 +17,7 @@ endif
 all: build
 
 build:
-	go build --ldflags '$(LDFLAGS)' -o packetstreamer ./main.go
+	go build -tags '$(TAGS)' --ldflags '$(LDFLAGS)' -o packetstreamer ./main.go
 
 docker-bin: docker-image
 	docker cp $(shell docker create --rm $(IMAGE)):/usr/bin/packetstreamer .
