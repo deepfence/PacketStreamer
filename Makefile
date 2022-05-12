@@ -1,4 +1,5 @@
 IMAGE ?= docker.io/deepfenceio/deepfence_packetstreamer
+IMAGE_BUILD ?= docker.io/deepfenceio/deepfence_packetstreamer_build
 CC ?= gcc
 LDFLAGS ?=
 TAGS ?=
@@ -28,5 +29,9 @@ docker-image:
 docker-push:
 	docker push $(IMAGE)
 
+docker-test:
+	docker build -t $(IMAGE_BUILD) --target builder .
+	docker run --rm $(IMAGE_BUILD) make test STATIC=1
+
 test:
-	go test ./...
+	go test -tags '$(TAGS)' ./...
