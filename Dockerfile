@@ -24,7 +24,8 @@ RUN git clone --branch libpcap-1.10.1 --depth 1 https://github.com/the-tcpdump-g
 COPY . /src
 WORKDIR /src
 ARG RELEASE=0
-RUN make build STATIC=1 RELEASE=${RELEASE}
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    make build STATIC=1 RELEASE=${RELEASE}
 
 FROM alpine:3.15 as packetstreamer
 
