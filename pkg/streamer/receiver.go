@@ -121,7 +121,8 @@ loop:
 				pluginChan <- tmpData
 			}
 
-			if writeOutput(config, []byte(tmpData)) == 1 {
+			if err := writeOutput(config, []byte(tmpData)); err != nil {
+				log.Printf("Error while writing to output: %v\n", err)
 				break loop
 			}
 		case <-ctx.Done():

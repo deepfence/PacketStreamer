@@ -62,7 +62,8 @@ loop:
 			startIdx += len(payloadMarkerBuff)
 			copy(dataToSend[startIdx:], outputData[:])
 			startIdx += outputDataLen
-			if writeOutput(config, dataToSend[0:startIdx]) == 1 {
+			if err := writeOutput(config, dataToSend[0:startIdx]); err != nil {
+				log.Printf("Error while writing to output: %s\n", err)
 				break loop
 			}
 		case <-ctx.Done():
