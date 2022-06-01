@@ -1,0 +1,1 @@
+{"buildTargets":["all","build","docker-bin","docker-image","docker-push","docker-test","test"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

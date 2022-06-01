@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/vadorovsky/repos/PacketStreamer'
+go build -tags '' --ldflags '' -o packetstreamer ./main.go
+make: Leaving directory '/home/vadorovsky/repos/PacketStreamer'
+ 

@@ -1,0 +1,384 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.3
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Wed Jun  1 10:47:31 2022
+
+# Variables
+
+# environment
+GDK_BACKEND = x11
+# environment
+LC_ALL = C
+# environment
+NO_AT_BRIDGE = 1
+# environment
+GJS_DEBUG_OUTPUT = stderr
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-2a7af5a8-ea16-4712-abc6-d37b75e0abcd.sock
+# environment
+LC_NAME = de_DE.UTF-8
+# environment
+LC_NUMERIC = de_DE.UTF-8
+# environment
+VSCODE_CWD = /home/vadorovsky
+# environment
+LC_ADDRESS = de_DE.UTF-8
+# environment
+GDM_LANG = en_US.UTF-8
+# default
+MAKE_COMMAND := make
+# environment
+GOPATH = /home/vadorovsky/go
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# default
+.VARIABLES := 
+# environment
+PWD = /home/vadorovsky/repos/PacketStreamer
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+MAIL = /var/spool/mail/vadorovsky
+# environment
+XDG_DATA_DIRS = /home/vadorovsky/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+VSCODE_LOG_STACK = false
+# automatic
+%F = $(notdir $%)
+# environment
+VSCODE_CODE_CACHE_PATH = /home/vadorovsky/.config/Code/CachedData/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5
+# makefile (from 'Makefile', line 2)
+IMAGE_BUILD = docker.io/deepfenceio/deepfence_packetstreamer_build
+# environment
+LANG = C
+# environment
+XAUTHORITY = /run/user/1000/.mutter-Xwaylandauth.GQKVM1
+# default
+.LOADED := 
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# makefile
+MAKEFLAGS = pqrR
+# makefile
+CURDIR := /home/vadorovsky/repos/PacketStreamer
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# makefile (from 'Makefile', line 1)
+IMAGE = docker.io/deepfenceio/deepfence_packetstreamer
+# environment
+MFLAGS = -pqrR
+# environment
+SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
+# default
+.SHELLFLAGS := -c
+# environment
+WAYLAND_DISPLAY = wayland-0
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+XDG_SESSION_DESKTOP = gnome
+# makefile (from 'Makefile', line 1)
+MAKEFILE_LIST := Makefile
+# automatic
+@F = $(notdir $@)
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+VSCODE_PID = 1023773
+# environment
+MOZ_ENABLE_WAYLAND = 1
+# environment
+XDG_SESSION_TYPE = wayland
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# environment
+SESSION_MANAGER = local/navi:@/tmp/.ICE-unix/1479,unix/navi:/tmp/.ICE-unix/1479
+# automatic
+*F = $(notdir $*)
+# environment
+QT_QPA_PLATFORMTHEME = qt5ct
+# environment
+CHROME_DESKTOP = code-url-handler.desktop
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+# makefile
+SHELL = /bin/sh
+# default
+MAKECMDGOALS := all
+# environment
+XMODIFIERS = @im=ibus
+# environment
+GJS_DEBUG_TOPICS = JS ERROR;JS LOG
+# environment
+SHLVL = 1
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# environment
+PATH = /usr/local/bin:/usr/bin:/var/lib/snapd/snap/bin
+# default
+MAKEFILES := 
+# environment
+LC_MONETARY = de_DE.UTF-8
+# environment
+MOTD_SHOWN = pam
+# automatic
+^F = $(notdir $^)
+# makefile (from 'Makefile', line 11)
+RELEASE = 0
+# environment
+LC_TIME = de_DE.UTF-8
+# environment
+INVOCATION_ID = 96fa59e0a94940f29b814269b9710921
+# environment
+VSCODE_LOG_NATIVE = false
+# environment
+USERNAME = vadorovsky
+# environment
+GNOME_SETUP_DISPLAY = :1
+# environment
+LC_TELEPHONE = de_DE.UTF-8
+# automatic
+?F = $(notdir $?)
+# environment
+XDG_CURRENT_DESKTOP = GNOME
+# automatic
++F = $(notdir $+)
+# environment
+DESKTOP_SESSION = gnome
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = GNOME
+# 'override' directive
+GNUMAKEFLAGS := 
+# environment
+LOGNAME = vadorovsky
+# environment
+GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/visual-studio-code.desktop
+# makefile
+.DEFAULT_GOAL := all
+# environment
+SYSTEMD_EXEC_PID = 1495
+# environment
+EDITOR = /usr/bin/nano
+# environment
+DISPLAY = :0
+# environment
+USER = vadorovsky
+# default
+MAKE_VERSION := 4.3
+# makefile (from 'Makefile', line 4)
+LDFLAGS = 
+# environment
+MANAGERPID = 1434
+# environment
+LC_MEASUREMENT = de_DE.UTF-8
+# environment
+GIO_LAUNCHED_DESKTOP_FILE_PID = 1023756
+# environment
+_ = /usr/bin/make
+# environment
+LC_PAPER = de_DE.UTF-8
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+GOMODCACHE = /home/vadorovsky/go/pkg/mod
+# environment
+JOURNAL_STREAM = 8:28013
+# environment
+XDG_SESSION_CLASS = user
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /home/vadorovsky
+# environment
+QT_IM_MODULE = ibus
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-762a1674-1.67.2-main.sock
+# environment
+GOPROXY = https://proxy.golang.org,direct
+# default
+.RECIPEPREFIX := 
+# automatic
+<F = $(notdir $<)
+# default
+SUFFIXES := 
+# makefile (from 'Makefile', line 5)
+TAGS = 
+# makefile (from 'Makefile', line 6)
+STATIC = 0
+# environment
+QT_AUTO_SCREEN_SCALE_FACTOR = 1
+# environment
+VSCODE_CLI = 1
+# environment
+ELECTRON_NO_ATTACH_CONSOLE = 1
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink guile load
+# makefile (from 'Makefile', line 3)
+CC = gcc
+# environment
+XDG_MENU_PREFIX = gnome-
+# environment
+GDMSESSION = gnome
+# environment
+LC_IDENTIFICATION = de_DE.UTF-8
+# variable set hash-table stats:
+# Load=117/1024=11%, Rehash=0, Collisions=6/161=4%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 40, inode 2396548): 24 files, no impossibilities.
+
+# 24 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-05-31 13:23:45.515674736
+#  File has been updated.
+#  Successfully updated.
+
+docker-bin: docker-image
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 24):
+	docker cp $(shell docker create --rm $(IMAGE)):/usr/bin/packetstreamer .
+
+docker-test:
+ 
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 33):
+	docker build -t $(IMAGE_BUILD) --target builder .
+	docker run --rm $(IMAGE_BUILD) make test STATIC=1
+
+docker-image:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 27):
+	docker build -t $(IMAGE) --build-arg RELEASE=$(RELEASE) .
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+all: build
+#  Phony target (prerequisite of .PHONY).
+#  Command line target.
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/5=0%
+
+build:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: ''
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := build
+# automatic
+# * := 
+# automatic
+# < := 
+# automatic
+# + := 
+# automatic
+# % := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# automatic
+# | := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=1/13=8%
+#  recipe to execute (from 'Makefile', line 21):
+	go build -tags '$(TAGS)' --ldflags '$(LDFLAGS)' -o packetstreamer ./main.go
+
+test:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 37):
+	go test -tags '$(TAGS)' ./...
+
+docker-push:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 30):
+	docker push $(IMAGE)
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.PHONY: all build docker-bin docker-image test
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# files hash-table stats:
+# Load=11/1024=1%, Rehash=0, Collisions=0/34=0%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 36 / storage = 332 B / avg = 9 B
+# current buf: size = 8162 B / used = 332 B / count = 36 / avg = 9 B
+
+# strcache performance: lookups = 57 / hit rate = 36%
+# hash-table stats:
+# Load=36/8192=0%, Rehash=0, Collisions=0/57=0%
+# Finished Make data base on Wed Jun  1 10:47:31 2022
+
+ 
