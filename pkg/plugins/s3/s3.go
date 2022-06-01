@@ -3,16 +3,17 @@ package s3
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+
 	"github.com/deepfence/PacketStreamer/pkg/config"
 	"github.com/deepfence/PacketStreamer/pkg/file"
-	"log"
-	"time"
 )
 
 const (
@@ -78,7 +79,6 @@ func (mpu *MultipartUpload) appendToBuffer(data []byte) {
 func (p *Plugin) Start(ctx context.Context) chan<- string {
 	inputChan := make(chan string)
 	go func() {
-		payloadMarker := []byte{0x0, 0x0, 0x0, 0x0}
 		var mpu *MultipartUpload
 
 		for {
@@ -101,9 +101,6 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 					}
 				}
 				data := []byte(chunk)
-				dataLen := len(data)
-				binary.LittleEndian.PutUint32(payloadMarker[:], uint32(dataLen))
-				mpu.appendToBuffer(payloadMarker)
 				mpu.appendToBuffer(data)
 
 				if uint64(len(mpu.Buffer)) >= p.UploadChunkSize {
