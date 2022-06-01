@@ -1,0 +1,10 @@
+output:
+  plugins:
+    s3:
+      region: eu-west-1
+      bucket: foo-pcap
+      totalFileSize: 10MB
+      uploadChunkSize: 5MB
+      uploadTimeout: 1m
+      cannedACL: bucket-owner-full-control
+pcapMode: all
