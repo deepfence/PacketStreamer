@@ -21,7 +21,7 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 
 	if config.Output.Plugins.S3 != nil {
 		log.Println("Starting S3 plugin")
-		s3plugin, err := s3.NewPlugin(ctx, config.Output.Plugins.S3)
+		s3plugin, err := s3.NewPlugin(ctx, config)
 
 		if err != nil {
 			return nil, fmt.Errorf("error starting S3 plugin, %v", err)

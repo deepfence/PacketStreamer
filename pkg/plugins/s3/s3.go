@@ -11,9 +11,10 @@ import (
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcapgo"
 
 	"github.com/deepfence/PacketStreamer/pkg/config"
-	"github.com/deepfence/PacketStreamer/pkg/file"
 )
 
 const (
@@ -24,6 +25,7 @@ type Plugin struct {
 	S3Client        *s3.Client
 	Region          string
 	Bucket          string
+	InputPacketLen  int
 	TotalFileSize   uint64
 	UploadChunkSize uint64
 	UploadTimeout   time.Duration
@@ -37,8 +39,9 @@ type MultipartUpload struct {
 	TotalDataSent int
 }
 
-func NewPlugin(ctx context.Context, config *config.S3PluginConfig) (*Plugin, error) {
-	awsCfg, err := awsConfig.LoadDefaultConfig(ctx, awsConfig.WithRegion(config.Region))
+func NewPlugin(ctx context.Context, config *config.Config) (*Plugin, error) {
+	awsCfg, err := awsConfig.LoadDefaultConfig(ctx,
+		awsConfig.WithRegion(config.Output.Plugins.S3.Region))
 
 	if err != nil {
 		return nil, fmt.Errorf("error loading AWS config when creating S3 client, %v", err)
@@ -52,12 +55,12 @@ func NewPlugin(ctx context.Context, config *config.S3PluginConfig) (*Plugin, err
 
 	return &Plugin{
 		S3Client:        s3Client,
-		Region:          config.Region,
-		Bucket:          config.Bucket,
-		TotalFileSize:   uint64(*config.TotalFileSize),
-		UploadChunkSize: uint64(*config.UploadChunkSize),
-		UploadTimeout:   config.UploadTimeout,
-		CannedACL:       config.CannedACL,
+		Region:          config.Output.Plugins.S3.Region,
+		Bucket:          config.Output.Plugins.S3.Bucket,
+		TotalFileSize:   uint64(*config.Output.Plugins.S3.TotalFileSize),
+		UploadChunkSize: uint64(*config.Output.Plugins.S3.UploadChunkSize),
+		UploadTimeout:   config.Output.Plugins.S3.UploadTimeout,
+		CannedACL:       config.Output.Plugins.S3.CannedACL,
 	}, nil
 }
 
@@ -90,13 +93,6 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 
 					if err != nil {
 						log.Printf("error creating multipart upload, stopping... - %v\n", err)
-						return
-					}
-
-					mpu.appendToBuffer(file.Header)
-
-					if err != nil {
-						log.Printf("error adding header to buffer, stopping... - %v\n", err)
 						return
 					}
 				}
@@ -227,5 +223,13 @@ func (p *Plugin) createMultipartUpload(ctx context.Context) (*MultipartUpload, e
 		return nil, fmt.Errorf("error creating multipart upload, %v", err)
 	}
 
-	return newMultipartUpload(output), nil
+	mpu := newMultipartUpload(output)
+
+	var pcapBuffer bytes.Buffer
+	pcapWriter := pcapgo.NewWriter(&pcapBuffer)
+	pcapWriter.WriteFileHeader(uint32(p.InputPacketLen), layers.LinkTypeEthernet)
+
+	mpu.appendToBuffer(pcapBuffer.Bytes())
+
+	return mpu, nil
 }
