@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Using on Kubernetes - PacketStreamer</title>
+        <title>S3 - PacketStreamer</title>
 
 
         <!-- Custom HTML head -->
@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../quickstart/index.html"><strong aria-hidden="true">2.</strong> Quickstart</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../quickstart/building.html"><strong aria-hidden="true">2.1.</strong> Building</a></li><li class="chapter-item expanded "><a href="../quickstart/local.html"><strong aria-hidden="true">2.2.</strong> Using locally</a></li><li class="chapter-item expanded "><a href="../quickstart/docker.html"><strong aria-hidden="true">2.3.</strong> Using with Docker</a></li><li class="chapter-item expanded "><a href="../quickstart/kubernetes.html" class="active"><strong aria-hidden="true">2.4.</strong> Using on Kubernetes</a></li><li class="chapter-item expanded "><a href="../quickstart/vagrant.html"><strong aria-hidden="true">2.5.</strong> Using on Vagrant</a></li></ol></li><li class="chapter-item expanded "><a href="../plugins/index.html"><strong aria-hidden="true">3.</strong> Plugins</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plugins/s3.html"><strong aria-hidden="true">3.1.</strong> S3</a></li></ol></li><li class="chapter-item expanded "><a href="../tools/index.html"><strong aria-hidden="true">4.</strong> Using with other tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../tools/suricata.html"><strong aria-hidden="true">4.1.</strong> Suricata</a></li></ol></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">5.</strong> Configuration</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../quickstart/index.html"><strong aria-hidden="true">2.</strong> Quickstart</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../quickstart/building.html"><strong aria-hidden="true">2.1.</strong> Building</a></li><li class="chapter-item expanded "><a href="../quickstart/local.html"><strong aria-hidden="true">2.2.</strong> Using locally</a></li><li class="chapter-item expanded "><a href="../quickstart/docker.html"><strong aria-hidden="true">2.3.</strong> Using with Docker</a></li><li class="chapter-item expanded "><a href="../quickstart/kubernetes.html"><strong aria-hidden="true">2.4.</strong> Using on Kubernetes</a></li><li class="chapter-item expanded "><a href="../quickstart/vagrant.html"><strong aria-hidden="true">2.5.</strong> Using on Vagrant</a></li></ol></li><li class="chapter-item expanded "><a href="../plugins/index.html"><strong aria-hidden="true">3.</strong> Plugins</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../plugins/s3.html" class="active"><strong aria-hidden="true">3.1.</strong> S3</a></li></ol></li><li class="chapter-item expanded "><a href="../tools/index.html"><strong aria-hidden="true">4.</strong> Using with other tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../tools/suricata.html"><strong aria-hidden="true">4.1.</strong> Suricata</a></li></ol></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">5.</strong> Configuration</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -142,24 +142,77 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="using-on-kubernetes"><a class="header" href="#using-on-kubernetes">Using on Kubernetes</a></h1>
-<p>PacketStreamer can be deployed on Kubernetes using Helm:</p>
-<pre><code class="language-bash">kubectl apply -f ./contrib/kubernetes/namespace.yaml
-helm install packetstreamer ./contrib/helm/ --namespace packetstreamer
+                        <h1 id="s3"><a class="header" href="#s3">S3</a></h1>
+<p>The S3 plugins allows to stream packets to the given S3 buckets.</p>
+<h2 id="configuration"><a class="header" href="#configuration">Configuration</a></h2>
+<h3 id="aws-credentials"><a class="header" href="#aws-credentials">AWS credentials</a></h3>
+<p>Before running PacketStreamer, AWS credentials need to be configured by one of
+the following ways:</p>
+<ul>
+<li><code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> environment variables</li>
+<li><code>~/.aws/config</code> file - it can be created by <code>aws configure</code></li>
+</ul>
+<p>The first way might be more convenient when running as root (required when
+running a sensor).</p>
+<h3 id="configuration-scheme"><a class="header" href="#configuration-scheme">Configuration scheme</a></h3>
+<p>S3 plugin configuration has the following syntax:</p>
+<pre><code class="language-yaml">output:
+  plugins:                         # optional
+    s3:
+      bucket: _string_
+      region: _string_
+      totalFileSize: _file_size_   # optional; default: 10 MB
+      uploadChunkSize: _file_size_ # optional; default: 5 MB
+      uploadTimeout: _timeout_     # optional; default: 1m
+      cannedACL: _acl_             # optional; default: Bucket owner enforced
 </code></pre>
-<p>By default, the Helm chart deploys a DaemonSet with sensor on all nodes and one
-receiver instance. For the custom configuration values, please refer to the
-<a href="/contrib/helm/values.yaml">values.yaml file</a>.</p>
+<h3 id="sensor-configuration"><a class="header" href="#sensor-configuration">Sensor configuration</a></h3>
+<p>If you want to stream locally captured packets from sensor to S3, you can use
+the following example configuration from
+<a href="https://raw.githubusercontent.com/deepfence/PacketStreamer/main/contrib/config/sensor-s3.yaml">contrib/config/sensor-s3.yaml</a>:</p>
+<pre><code class="language-yaml">output:
+  plugins:
+    s3:
+      region: eu-west-1
+      bucket: foo-pcap
+      totalFileSize: 10MB
+      uploadChunkSize: 5MB
+      uploadTimeout: 1m
+      cannedACL: bucket-owner-full-control
+pcapMode: all
+</code></pre>
+<p>And run PacketStreamer with it:</p>
+<pre><code class="language-bash">sudo packetstreamer sensor --config ./contrib/config/sensor-s3.yaml
+</code></pre>
+<h3 id="receiver-configuration"><a class="header" href="#receiver-configuration">Receiver configuration</a></h3>
+<p>If you want to stream packets from receiver to S3, you can use the following
+example configuration from
+[contrib/config/receiver-s3.yaml]</p>
+<pre><code class="language-yaml">input:
+  address: 0.0.0.0
+  port: 8081
+output:
+  plugins:
+    s3:
+      region: eu-west-1
+      bucket: foo-pcap
+      totalFileSize: 10MB
+      uploadChunkSize: 5MB
+      uploadTimeout: 1m
+      cannedACL: bucket-owner-full-control
+</code></pre>
+<pre><code class="language-bash">packetstreamer receiver --config ./contrib/config/receiver-s3.yaml
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../quickstart/docker.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../plugins/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../quickstart/vagrant.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../tools/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -169,11 +222,11 @@ receiver instance. For the custom configuration values, please refer to the
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../quickstart/docker.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../plugins/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../quickstart/vagrant.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../tools/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

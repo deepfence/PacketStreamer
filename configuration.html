@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quickstart/index.html"><strong aria-hidden="true">2.</strong> Quickstart</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="quickstart/building.html"><strong aria-hidden="true">2.1.</strong> Building</a></li><li class="chapter-item expanded "><a href="quickstart/local.html"><strong aria-hidden="true">2.2.</strong> Using locally</a></li><li class="chapter-item expanded "><a href="quickstart/docker.html"><strong aria-hidden="true">2.3.</strong> Using with Docker</a></li><li class="chapter-item expanded "><a href="quickstart/kubernetes.html"><strong aria-hidden="true">2.4.</strong> Using on Kubernetes</a></li><li class="chapter-item expanded "><a href="quickstart/vagrant.html"><strong aria-hidden="true">2.5.</strong> Using on Vagrant</a></li></ol></li><li class="chapter-item expanded "><a href="tools/index.html"><strong aria-hidden="true">3.</strong> Using with other tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tools/suricata.html"><strong aria-hidden="true">3.1.</strong> Suricata</a></li></ol></li><li class="chapter-item expanded "><a href="configuration.html" class="active"><strong aria-hidden="true">4.</strong> Configuration</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quickstart/index.html"><strong aria-hidden="true">2.</strong> Quickstart</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="quickstart/building.html"><strong aria-hidden="true">2.1.</strong> Building</a></li><li class="chapter-item expanded "><a href="quickstart/local.html"><strong aria-hidden="true">2.2.</strong> Using locally</a></li><li class="chapter-item expanded "><a href="quickstart/docker.html"><strong aria-hidden="true">2.3.</strong> Using with Docker</a></li><li class="chapter-item expanded "><a href="quickstart/kubernetes.html"><strong aria-hidden="true">2.4.</strong> Using on Kubernetes</a></li><li class="chapter-item expanded "><a href="quickstart/vagrant.html"><strong aria-hidden="true">2.5.</strong> Using on Vagrant</a></li></ol></li><li class="chapter-item expanded "><a href="plugins/index.html"><strong aria-hidden="true">3.</strong> Plugins</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="plugins/s3.html"><strong aria-hidden="true">3.1.</strong> S3</a></li></ol></li><li class="chapter-item expanded "><a href="tools/index.html"><strong aria-hidden="true">4.</strong> Using with other tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tools/suricata.html"><strong aria-hidden="true">4.1.</strong> Suricata</a></li></ol></li><li class="chapter-item expanded "><a href="configuration.html" class="active"><strong aria-hidden="true">5.</strong> Configuration</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,29 +144,37 @@
                     <main>
                         <h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
 <p><code>packetstreamer</code> is configured using a yaml-formatted configuration file.</p>
-<pre><code class="language-yaml">input:                         # required in 'receiver' mode
+<pre><code class="language-yaml">input:                             # required in 'receiver' mode
   address: _ip-address_
   port: _listen-port_
 output:
-  server:                      # required in 'sensor' mode
+  server:                          # required in 'sensor' mode
     address: _ip-address_
     port: _listen-port_
-  file:                        # required in 'receiver' mode
-    path: _filename_|stdout    # 'stdout' is a reserved name. Receiver will write to stdout
-tls:                           # optional
+  file:                            # required in 'receiver' mode
+    path: _filename_|stdout        # 'stdout' is a reserved name. Receiver will write to stdout
+  plugins:                         # optional
+    s3:
+      bucket: _string_
+      region: _string_
+      totalFileSize: _file_size_   # optional; default: 10 MB
+      uploadChunkSize: _file_size_ # optional; default: 5 MB
+      uploadTimeout: _timeout_     # optional; default: 1m
+      cannedACL: _acl_             # optional; default: Bucket owner enforced
+tls:                               # optional
   enable: _true_|_false_
   certfile: _filename_
   keyfile: _filename_
-auth:                          # optional; receiver and sensor must use same shared key
+auth:                              # optional; receiver and sensor must use same shared key
   enable: _true_|_false_
   key: _string_
-compressBlockSize: _integer_   # optional; default: 65
-inputPacketLen: _integer_      # optional; default: 65535
-logFilename: _filename_        # optional
-pcapMode: _Allow_|_Deny_|_All_ # optional
-capturePorts: _list-of-ports_  # optional
+compressBlockSize: _integer_       # optional; default: 65
+inputPacketLen: _integer_          # optional; default: 65535
+logFilename: _filename_            # optional
+pcapMode: _Allow_|_Deny_|_All_     # optional
+capturePorts: _list-of-ports_      # optional
 captureInterfacesPorts: _map: interface-name:port_ # optional
-ignorePorts: _list-of-ports_   # optional
+ignorePorts: _list-of-ports_       # optional
 </code></pre>
 <p>You can find example configuration files in the <a href="https://github.com/deepfence/PacketStreamer/tree/main/contrib/config"><code>/contrib/config/</code></a>
 folder.</p>
