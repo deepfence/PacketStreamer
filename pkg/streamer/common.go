@@ -26,7 +26,10 @@ var (
 	hdrData       = [...]byte{0xde, 0xef, 0xec, 0xe0}
 )
 
-func writeOutput(config *config.Config, tmpData []byte) int {
+func writeOutput(config *config.Config, tmpData []byte) error {
+	if outputFd == nil {
+		return nil
+	}
 
 	var numAttempts = 0
 	reconnectAttempt := false
@@ -38,15 +41,13 @@ func writeOutput(config *config.Config, tmpData []byte) int {
 				reconnectAttempt = true
 				err := InitOutput(config, "tcp")
 				if err != nil {
-					log.Printf("Tried to reconnect but got: %v\n", err)
-					return 1
+					return fmt.Errorf("tried to reconnect but got: %w", err)
 				}
 				log.Printf("Tried to write for %d times. Reconnecting once. \n", numAttempts)
 				numAttempts = 0
 				continue
 			}
-			log.Printf("Tried to write for %d times. Bailing out. \n", numAttempts)
-			return 1
+			return fmt.Errorf("tried to write for %d times", numAttempts)
 		}
 
 		bytesWritten, err := outputFd.Write(tmpData[totalBytesWritten:])
@@ -63,7 +64,7 @@ func writeOutput(config *config.Config, tmpData []byte) int {
 			continue
 		}
 
-		return 0
+		return nil
 	}
 }
 

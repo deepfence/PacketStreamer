@@ -3,6 +3,8 @@ package plugins
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/deepfence/PacketStreamer/pkg/config"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/s3"
@@ -18,7 +20,8 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 	var plugins []chan<- string
 
 	if config.Output.Plugins.S3 != nil {
-		s3plugin, err := s3.NewPlugin(ctx, config.Output.Plugins.S3)
+		log.Println("Starting S3 plugin")
+		s3plugin, err := s3.NewPlugin(ctx, config)
 
 		if err != nil {
 			return nil, fmt.Errorf("error starting S3 plugin, %v", err)
@@ -29,6 +32,7 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 	}
 
 	if config.Output.Plugins.Kafka != nil {
+		log.Println("Starting Kafka plugin")
 		kafkaPlugin, err := kafka.NewPlugin(config.Output.Plugins.Kafka)
 
 		if err != nil {

@@ -6,19 +6,20 @@ import (
 	"crypto/tls"
 	"encoding/binary"
 	"fmt"
-	"github.com/deepfence/PacketStreamer/pkg/plugins"
 	"io"
 	"log"
 	"net"
 	"os"
 	"time"
 
+	"github.com/deepfence/PacketStreamer/pkg/plugins"
+
 	"github.com/deepfence/PacketStreamer/pkg/config"
 )
 
 const (
-	maxNumPkts       = 100
-	connTimeout      = 60
+	maxNumPkts  = 100
+	connTimeout = 60
 )
 
 func readDataFromSocket(hostConn net.Conn, dataBuff []byte, bytesToRead int) error {
@@ -107,23 +108,25 @@ func readPkts(clientConn net.Conn, config *config.Config, pktUncompressChannel c
 }
 
 func receiverOutput(ctx context.Context, config *config.Config, consolePktOutputChannel chan string, pluginChan chan<- string) {
+loop:
 	for {
 		select {
 		case tmpData, chanExitVal := <-consolePktOutputChannel:
 			if !chanExitVal {
 				log.Println("Error while reading from output channel")
-				break
+				break loop
 			}
 
 			if pluginChan != nil {
 				pluginChan <- tmpData
 			}
 
-			if writeOutput(config, []byte(tmpData)) == 1 {
-				break
+			if err := writeOutput(config, []byte(tmpData)); err != nil {
+				log.Printf("Error while writing to output: %v\n", err)
+				break loop
 			}
 		case <-ctx.Done():
-			break
+			break loop
 		}
 	}
 }

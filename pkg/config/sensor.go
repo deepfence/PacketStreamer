@@ -10,7 +10,9 @@ var (
 )
 
 func ValidateSensorConfig(config *Config) error {
-	if config.Output.File == nil && config.Output.Server == nil {
+	if config.Output.File == nil && config.Output.Server == nil &&
+		(config.Output.Plugins == nil ||
+			(config.Output.Plugins.S3 == nil && config.Output.Plugins.Kafka == nil)) {
 		return ErrNoOutputConfigured
 	}
 	if config.Output.Server != nil && config.Output.Server.Port == nil {

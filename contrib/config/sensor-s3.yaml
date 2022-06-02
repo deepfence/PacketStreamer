@@ -1,6 +1,3 @@
-input:
-  address: 0.0.0.0
-  port: 8081
 output:
   plugins:
     s3:
@@ -10,3 +7,4 @@ output:
       uploadChunkSize: 5MB
       uploadTimeout: 1m
       cannedACL: bucket-owner-full-control
+pcapMode: all

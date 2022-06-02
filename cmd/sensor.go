@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 
@@ -19,17 +23,20 @@ var sensorCmd = &cobra.Command{
 			log.Fatalf("Invalid configuration: %v", err)
 		}
 
-		mainSignalChannel := make(chan bool)
-
 		proto := "tcp"
 		if err := streamer.InitOutput(cfg, proto); err != nil {
 			log.Fatalf("Failed to connect: %v", err)
 		}
 
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+		ctx, cancel := context.WithCancel(context.Background())
+
 		log.Println("Start sending")
-		streamer.StartSensor(cfg, mainSignalChannel)
+		streamer.StartSensor(ctx, cfg)
 		log.Println("Now waiting in main")
-		<-mainSignalChannel
+		<-sigs
+		cancel()
 	},
 }
 
