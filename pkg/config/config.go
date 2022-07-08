@@ -2,10 +2,12 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/inhies/go-bytesize"
-	"io/ioutil"
-	"time"
 
 	"github.com/klauspost/compress/s2"
 	"gopkg.in/yaml.v3"
@@ -53,12 +55,13 @@ type S3PluginConfig struct {
 }
 
 type KafkaPluginConfig struct {
-	Brokers     string
+	Brokers     []string
 	ClientId    string             `yaml:"clientId,omitempty"`
 	Topic       string             `yaml:"topic,omitempty"`
 	MessageSize *bytesize.ByteSize `yaml:"messageSize,omitempty"`
 	Acks        string             `yaml:"acks,omitempty"`
 	FileSize    *bytesize.ByteSize `yaml:"fileSize,omitempty"`
+	Timeout     time.Duration      `yaml:"timeout,omitempty"`
 }
 
 type PluginsConfig struct {
@@ -83,11 +86,12 @@ type S3OutputRawConfig struct {
 
 type KafkaOutputRawConfig struct {
 	Brokers     string
-	ClientId    *string `yaml:"clientId,omitempty"`
-	Topic       *string `yaml:"topic,omitempty"`
-	MessageSize *string `yaml:"messageSize,omitempty"`
-	Acks        *string `yaml:"acks,omitempty"`
-	FileSize    *string `yaml:"fileSize,omitempty"`
+	ClientId    *string       `yaml:"clientId,omitempty"`
+	Topic       *string       `yaml:"topic,omitempty"`
+	MessageSize *string       `yaml:"messageSize,omitempty"`
+	Acks        *string       `yaml:"acks,omitempty"`
+	FileSize    *string       `yaml:"fileSize,omitempty"`
+	Timeout     time.Duration `yaml:"timeout,omitempty"`
 }
 
 type PluginsRawConfig struct {
@@ -289,12 +293,13 @@ func populateKafkaConfig(rawConfig RawConfig) (*KafkaPluginConfig, error) {
 	}
 
 	return &KafkaPluginConfig{
-		Brokers:     rawConfig.Output.Plugins.Kafka.Brokers,
+		Brokers:     strings.Split(rawConfig.Output.Plugins.Kafka.Brokers, ","),
 		ClientId:    clientId,
 		Topic:       topic,
 		MessageSize: messageSize,
 		Acks:        acks,
 		FileSize:    fileSize,
+		Timeout:     rawConfig.Output.Plugins.Kafka.Timeout,
 	}, nil
 }
 
