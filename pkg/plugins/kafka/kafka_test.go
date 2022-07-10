@@ -3,23 +3,30 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/deepfence/PacketStreamer/pkg/file"
 	"reflect"
 	"testing"
+
+	"github.com/deepfence/PacketStreamer/pkg/file"
+	kafka "github.com/segmentio/kafka-go"
 )
 
-type mockKafkaProducer struct {
-	Messages []string
+type mockKafkaWriter struct {
+	Messages []kafka.Message
 }
 
-func (mkp *mockKafkaProducer) Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error {
-	mkp.Messages = append(mkp.Messages, string(msg.Value))
+func (mkp *mockKafkaWriter) WriteMessages(ctx context.Context, msgs ...kafka.Message) error {
+	mkp.Messages = append(mkp.Messages, msgs...)
 	return nil
 }
 
-func (mkp *mockKafkaProducer) Close() {
-	return
+func (mkp *mockKafkaWriter) Close() error {
+	return nil
+}
+
+type mockIdGenerator struct{}
+
+func (g *mockIdGenerator) Generate() string {
+	return "test"
 }
 
 func TestPluginStart(t *testing.T) {
@@ -28,39 +35,92 @@ func TestPluginStart(t *testing.T) {
 		Topic            string
 		MessageSize      int
 		ToSend           []string
-		ExpectedMessages []string
+		ExpectedMessages []kafka.Message
 	}{
 		{
-			TestName:         "message longer than messageSize",
-			Topic:            "test",
-			MessageSize:      8,
-			ToSend:           []string{"regular message"},
-			ExpectedMessages: []string{fmt.Sprintf("%sregu", file.Header), "lar mess", "age"},
+			TestName:    "message longer than messageSize",
+			Topic:       "test",
+			MessageSize: 8,
+			ToSend:      []string{"regular message"},
+			ExpectedMessages: []kafka.Message{
+				{
+					Topic:     "test",
+					Partition: 0,
+					Offset:    0,
+					Key:       []byte("test"),
+					Value:     []byte(fmt.Sprintf("%sregu", file.Header)),
+				},
+				{
+					Topic:     "test",
+					Partition: 0,
+					Offset:    0,
+					Key:       []byte("test"),
+					Value:     []byte("lar mess"),
+				},
+				{
+					Topic:     "test",
+					Partition: 0,
+					Offset:    0,
+					Key:       []byte("test"),
+					Value:     []byte("age"),
+				},
+			},
 		},
 		{
-			TestName:         "message shorter than messageSize",
-			Topic:            "test",
-			MessageSize:      100,
-			ToSend:           []string{"This is a message that's not long enough"},
-			ExpectedMessages: []string{fmt.Sprintf("%sThis is a message that's not long enough", file.Header)},
+			TestName:    "message shorter than messageSize",
+			Topic:       "test",
+			MessageSize: 100,
+			ToSend:      []string{"This is a message that's not long enough"},
+			ExpectedMessages: []kafka.Message{
+				{
+					Topic:     "test",
+					Partition: 0,
+					Offset:    0,
+					Key:       []byte("test"),
+					Value:     []byte(fmt.Sprintf("%sThis is a message that's not long enough", file.Header)),
+				},
+			},
 		},
 		{
-			TestName:         "short message followed by a long message",
-			Topic:            "test",
-			MessageSize:      20,
-			ToSend:           []string{"Hello", ", the second part of this message is longer"},
-			ExpectedMessages: []string{fmt.Sprintf("%sHello, the secon", file.Header), "d part of this messa", "ge is longer"},
+			TestName:    "short message followed by a long message",
+			Topic:       "test",
+			MessageSize: 20,
+			ToSend:      []string{"Hello", ", the second part of this message is longer"},
+			ExpectedMessages: []kafka.Message{
+				{
+					Topic:     "test",
+					Partition: 0,
+					Offset:    0,
+					Key:       []byte("test"),
+					Value:     []byte(fmt.Sprintf("%sHello, the secon", file.Header)),
+				},
+				{
+					Topic:     "test",
+					Partition: 0,
+					Offset:    0,
+					Key:       []byte("test"),
+					Value:     []byte("d part of this messa"),
+				},
+				{
+					Topic:     "test",
+					Partition: 0,
+					Offset:    0,
+					Key:       []byte("test"),
+					Value:     []byte("ge is longer"),
+				},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.TestName, func(t *testing.T) {
-			mockProducer := &mockKafkaProducer{
-				Messages: make([]string, 0),
+			mockWriter := &mockKafkaWriter{
+				Messages: make([]kafka.Message, 0),
 			}
 
 			plugin := &Plugin{
-				Producer:    mockProducer,
+				Writer:      mockWriter,
+				IdGenerator: &mockIdGenerator{},
 				Topic:       tt.Topic,
 				MessageSize: tt.MessageSize,
 				FileSize:    getFileSizeFromMessages(t, tt.ToSend),
@@ -77,8 +137,8 @@ func TestPluginStart(t *testing.T) {
 
 			<-plugin.CloseChan
 
-			if !reflect.DeepEqual(mockProducer.Messages, tt.ExpectedMessages) {
-				t.Errorf("expected %v, got %v", tt.ExpectedMessages, mockProducer.Messages)
+			if !reflect.DeepEqual(mockWriter.Messages, tt.ExpectedMessages) {
+				t.Errorf("expected %v, got %v", tt.ExpectedMessages, mockWriter.Messages)
 			}
 		})
 	}

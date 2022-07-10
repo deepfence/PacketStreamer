@@ -2,17 +2,18 @@ package kafka
 
 import (
 	"context"
-	"fmt"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"log"
+	"time"
+
 	"github.com/deepfence/PacketStreamer/pkg/config"
 	"github.com/deepfence/PacketStreamer/pkg/file"
 	"github.com/google/uuid"
-	"log"
+	kafka "github.com/segmentio/kafka-go"
 )
 
-type KafkaProducer interface {
-	Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error
-	Close()
+type KafkaWriter interface {
+	WriteMessages(ctx context.Context, msgs ...kafka.Message) error
+	Close() error
 }
 
 type File struct {
@@ -25,8 +26,19 @@ func (f *File) newBuffer(size int) {
 	f.Buffer = make([]byte, 0, size)
 }
 
+type IdGenerator interface {
+	Generate() string
+}
+
+type FileIdGenerator struct{}
+
+func (g *FileIdGenerator) Generate() string {
+	return uuid.New().String()
+}
+
 type Plugin struct {
-	Producer    KafkaProducer
+	Writer      KafkaWriter
+	IdGenerator IdGenerator
 	Topic       string
 	MessageSize int
 	CloseChan   chan bool
@@ -35,18 +47,20 @@ type Plugin struct {
 }
 
 func NewPlugin(config *config.KafkaPluginConfig) (*Plugin, error) {
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": config.Brokers,
-		"client.id":         config.ClientId,
-		"acks":              config.Acks,
+	dialer := &kafka.Dialer{
+		Timeout:   10 * time.Second,
+		DualStack: true,
+		TLS:       nil,
+	}
+	writer := kafka.NewWriter(kafka.WriterConfig{
+		Brokers:  config.Brokers,
+		Topic:    config.Topic,
+		Balancer: &kafka.Hash{},
+		Dialer:   dialer,
 	})
 
-	if err != nil {
-		return nil, fmt.Errorf("error creating kafka producer, %w", err)
-	}
-
 	return &Plugin{
-		Producer:    producer,
+		Writer:      writer,
 		Topic:       config.Topic,
 		MessageSize: int(*config.MessageSize),
 		FileSize:    uint64(*config.FileSize),
@@ -67,8 +81,8 @@ func (p *Plugin) newFile(id string, messageSize int) {
 func (p *Plugin) Start(ctx context.Context) chan<- string {
 	inputChan := make(chan string)
 	go func() {
-		defer p.Producer.Close()
-		p.newFile(generateFileId(), p.MessageSize)
+		defer p.Writer.Close()
+		p.newFile(p.IdGenerator.Generate(), p.MessageSize)
 
 		for {
 			select {
@@ -103,7 +117,7 @@ func (p *Plugin) Start(ctx context.Context) chan<- string {
 						}
 
 						if p.CurrentFile.Sent >= p.FileSize {
-							p.newFile(generateFileId(), p.MessageSize)
+							p.newFile(p.IdGenerator.Generate(), p.MessageSize)
 						} else {
 							p.CurrentFile.newBuffer(p.MessageSize)
 						}
@@ -132,17 +146,13 @@ func (p *Plugin) cleanup() {
 }
 
 func (p *Plugin) flush() error {
-	err := p.Producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: kafka.PartitionAny},
-		Value:          p.CurrentFile.Buffer,
-		Key:            []byte(p.CurrentFile.Id),
-	}, nil)
+	err := p.Writer.WriteMessages(context.Background(), kafka.Message{
+		Topic: p.Topic,
+		Key:   []byte(p.CurrentFile.Id),
+		Value: p.CurrentFile.Buffer,
+	})
 
 	p.CurrentFile.Sent += uint64(len(p.CurrentFile.Buffer))
 
 	return err
-}
-
-func generateFileId() string {
-	return uuid.New().String()
 }
