@@ -24,9 +24,13 @@ go.work
 .vagrant/
 
 # Binary
-packetstreamer
+/packetstreamer
 
 # Documentation
 docs/book/
 
 .idea
+
+# Documentation: working files for Docusaurus
+/docs/node_modules
+/docs/.docusaurus
