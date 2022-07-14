@@ -1,5 +1,5 @@
 ---
-title: Running with Vagrant
+title: Run with Vagrant
 ---
 
 # Using on Vagrant

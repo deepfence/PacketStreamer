@@ -22,20 +22,18 @@ const sidebars = {
     },
 
     'packetstreamer/index',
+    'packetstreamer/quickstart',
 
     {
       type: 'category',
-      label: 'QuickStart',
-      link: {
-        type: 'doc',
-        id: 'packetstreamer/quickstart/index'
-      },
+      label: 'Using PacketStreamer',
+
       items: [
-        'packetstreamer/quickstart/build',
-        'packetstreamer/quickstart/local',
-        'packetstreamer/quickstart/docker',
-        'packetstreamer/quickstart/kubernetes',
-        'packetstreamer/quickstart/vagrant',
+        'packetstreamer/using/build',
+        'packetstreamer/using/local',
+        'packetstreamer/using/docker',
+        'packetstreamer/using/kubernetes',
+        'packetstreamer/using/vagrant',
       ]
     },
 

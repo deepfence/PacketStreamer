@@ -1,5 +1,5 @@
 ---
-title: Building PacketStreamer
+title: Build PacketStreamer
 ---
 
 # Building

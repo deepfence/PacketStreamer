@@ -1,5 +1,5 @@
 ---
-title: Running on Kubernetes
+title: Run on Kubernetes
 ---
 
 # Using on Kubernetes

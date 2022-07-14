@@ -1,5 +1,5 @@
 ---
-title: Running on a Linux host
+title: Run on a Linux host
 ---
 
 # Using locally
