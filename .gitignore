@@ -30,7 +30,3 @@ go.work
 docs/book/
 
 .idea
-
-# Documentation: working files for Docusaurus
-/docs/node_modules
-/docs/.docusaurus

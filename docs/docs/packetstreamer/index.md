@@ -9,11 +9,13 @@ collection tool. It is used by Deepfence's [ThreatStryker](https://deepfence.io/
 security observability platform to gather network traffic on demand from cloud
 workloads for forensic analysis.
 
-Primary design goals:
+## Primary design goals:
 
 * Stay light, capture and stream, no additional processing
 * Portability, works across **virtual machines, Kubernetes and AWS Fargate**. Linux
   and Windows
+
+## Architecture
 
 PacketStreamer **sensors** are started on the target servers. Sensors capture
 traffic, apply filters, and then stream the traffic to a central reciever.
@@ -22,7 +24,9 @@ Traffic streams may be compressed and/or encrypted using TLS.
 The PacketStreamer **receiver** accepts PacketStreamer streams from multiple
 remote sensors, and writes the packets to a local `pcap` capture file
 
-![PacketStreamer Architecture](img/packetstreamer.png)
+| ![PacketStreamer Architecture](img/packetstreamer.png) |
+| :--: | 
+| *PacketStreamer sensors forward packets to a PacketStreamer receiver* |
 
 PacketStreamer sensors collect raw network packets on remote hosts. It selects packets
 to capture using a BPF filter, and forwards them to a central reciever process
