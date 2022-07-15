@@ -18,7 +18,7 @@ make
 
 ## Run a PacketStreamer receiver
 
-Run a PacketStreamer receiver, listening on port **8081** and writing pcap output to **/tmp/dump_file** (see [receiver.yaml](contrib/config/receiver.yaml)):
+Run a PacketStreamer receiver, listening on port **8081** and writing pcap output to **/tmp/dump_file** (see [receiver.yaml](https://github.com/deepfence/PacketStreamer/tree/main/contrib/config/receiver.yaml)):
   
 ```bash
 ./packetstreamer receiver --config ./contrib/config/receiver.yaml
@@ -26,7 +26,7 @@ Run a PacketStreamer receiver, listening on port **8081** and writing pcap outpu
 
 ## Run PacketStreamer sensors
 
-Run one or more PacketStreamer sensors on local and remote hosts. Edit the **server address** in [sensor.yaml](contrib/config/sensor-local.yaml):
+Run one or more PacketStreamer sensors on local and remote hosts. Edit the **server address** in [sensor.yaml](https://github.com/deepfence/PacketStreamer/tree/main/contrib/config/sensor-local.yaml):
 
 ```bash
 # run on the target hosts to capture and forward traffic
