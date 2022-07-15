@@ -1,3 +1,7 @@
+---
+title: Run with Vagrant
+---
+
 # Using on Vagrant
 
 On a single host, you may use [Vagrant](https://www.vagrantup.com) to run

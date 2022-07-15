@@ -1,3 +1,7 @@
+---
+title: Analyse with Suricata
+---
+
 # Suricata
 
 PacketStreamer's output can be used for threat detection with Suricata.

@@ -1,3 +1,7 @@
+---
+title: Build PacketStreamer
+---
+
 # Building
 
 Build the `packetstreamer` binary using the `go` toolchain as follows:
