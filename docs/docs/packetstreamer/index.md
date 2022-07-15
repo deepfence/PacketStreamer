@@ -37,7 +37,7 @@ run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.
 The PacketStreamer receiver accepts network traffic from multiple sensors,
 collecting it into a single, central `pcap` file.  You can then process the 
 pcap file or live feed the traffic to the tooling of your choice, such as
-`Zeek`, `Wireshark` `Suricata`, or as a live stream for Machine Learning models.
+`Zeek`, `Wireshark`, `Suricata`, or as a live stream for Machine Learning models.
 
 ## When to use PacketStreamer
 

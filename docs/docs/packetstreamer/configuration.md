@@ -8,36 +8,36 @@ title: Configuration
 
 ```yaml
 input:                             # required in 'receiver' mode
-  address: _ip-address_
-  port: _listen-port_
+  address: ip-address
+  port: listen-port
 output:
   server:                          # required in 'sensor' mode
-    address: _ip-address_
-    port: _listen-port_
+    address: ip-address
+    port: listen-port
   file:                            # required in 'receiver' mode
-    path: _filename_|stdout        # 'stdout' is a reserved name. Receiver will write to stdout
+    path: filename|stdout          # 'stdout' is a reserved name. Receiver will write to stdout
   plugins:                         # optional
     s3:
-      bucket: _string_
-      region: _string_
-      totalFileSize: _file_size_   # optional; default: 10 MB
-      uploadChunkSize: _file_size_ # optional; default: 5 MB
-      uploadTimeout: _timeout_     # optional; default: 1m
-      cannedACL: _acl_             # optional; default: Bucket owner enforced
+      bucket: string
+      region: string
+      totalFileSize: filesize      # optional; default: 10 MB
+      uploadChunkSize: filesize    # optional; default: 5 MB
+      uploadTimeout: timeout       # optional; default: 1m
+      cannedACL: acl               # optional; default: Bucket owner enforced
 tls:                               # optional
-  enable: _true_|_false_
-  certfile: _filename_
-  keyfile: _filename_
+  enable: true|false
+  certfile: filename
+  keyfile: filename
 auth:                              # optional; receiver and sensor must use same shared key
-  enable: _true_|_false_
-  key: _string_
-compressBlockSize: _integer_       # optional; default: 65
-inputPacketLen: _integer_          # optional; default: 65535
-logFilename: _filename_            # optional
-pcapMode: _Allow_|_Deny_|_All_     # optional
-capturePorts: _list-of-ports_      # optional
-captureInterfacesPorts: _map: interface-name:port_ # optional
-ignorePorts: _list-of-ports_       # optional
+  enable: true|false
+  key: string
+compressBlockSize: integer         # optional; default: 65
+inputPacketLen: integer            # optional; default: 65535
+logFilename: filename              # optional
+pcapMode: Allow|Deny|All           # optional
+capturePorts: list-of-ports        # optional
+captureInterfacesPorts: map: interface-name:port # optional
+ignorePorts: list-of-ports         # optional
 ```
 
 You can find example configuration files in the [`/contrib/config/`](https://github.com/deepfence/PacketStreamer/tree/main/contrib/config)
