@@ -1,0 +1,5 @@
+output:
+  plugins:
+    agent:
+      socketPath: /tmp/agent.sock
+pcapMode: all

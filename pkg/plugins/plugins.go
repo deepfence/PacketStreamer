@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/deepfence/PacketStreamer/pkg/config"
+	"github.com/deepfence/PacketStreamer/pkg/plugins/agent"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/kafka"
 	"github.com/deepfence/PacketStreamer/pkg/plugins/s3"
 )
@@ -43,6 +44,23 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 		plugins = append(plugins, kafkaChan)
 	}
 
+	if config.Output.Plugins.Agent != nil {
+		log.Println("Starting Agent plugin")
+		agentPlugin, err := agent.NewPlugin(config.Output.Plugins.Agent)
+
+		if err != nil {
+			return nil, fmt.Errorf("error starting Agent plugin, %v", err)
+		}
+
+		agentChan, err := agentPlugin.Start(ctx)
+
+		if err != nil {
+			return nil, fmt.Errorf("error starting Agent plugin, %v", err)
+		}
+
+		plugins = append(plugins, agentChan)
+	}
+
 	inputChan := make(chan string)
 	go func() {
 		defer func() {
@@ -66,5 +84,5 @@ func Start(ctx context.Context, config *config.Config) (chan<- string, error) {
 }
 
 func pluginsAreDefined(pluginsConfig *config.PluginsConfig) bool {
-	return pluginsConfig != nil && (pluginsConfig.S3 != nil || pluginsConfig.Kafka != nil)
+	return pluginsConfig != nil && (pluginsConfig.Agent != nil || pluginsConfig.S3 != nil || pluginsConfig.Kafka != nil)
 }
