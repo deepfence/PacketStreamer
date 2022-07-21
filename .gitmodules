@@ -1,0 +1,4 @@
+[submodule "deps/agent-plugins-grpc"]
+	path = deps/agent-plugins-grpc
+	url = git@github.com:deepfence/agent-plugins-grpc.git
+	branch = add-pcap

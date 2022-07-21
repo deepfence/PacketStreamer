@@ -13,9 +13,12 @@ ifeq ($(RELEASE),1)
 	LDFLAGS += -s -w
 endif
 
-.PHONY: all build docker-bin docker-image test
+.PHONY: all build docker-bin docker-image test localinit
 
-all: build
+all: proto build
+
+localinit:
+	$(PWD)/bootstrap.sh
 
 build:
 	go build -tags '$(TAGS)' --ldflags '$(LDFLAGS)' -o packetstreamer ./main.go
@@ -35,3 +38,13 @@ docker-test:
 
 test:
 	go test -tags '$(TAGS)' ./...
+
+clean:
+	-rm ./packetstreamer
+	-rm ./deps/agent-plugins-grpc/proto/*.go
+	-rm -r $(PWD)/proto
+
+proto: ./deps/agent-plugins-grpc/proto/*.proto
+	(cd ./deps/agent-plugins-grpc && make go)
+	-mkdir $(PWD)/proto
+	cp ./deps/agent-plugins-grpc/proto/*.go $(PWD)/proto
