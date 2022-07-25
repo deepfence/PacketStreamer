@@ -27,6 +27,7 @@ go.work
 /packetstreamer
 
 # Documentation
-docs/book/
+docs-mdbook/book/
 
 .idea
+.DS_Store
