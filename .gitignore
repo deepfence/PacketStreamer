@@ -24,7 +24,7 @@ go.work
 .vagrant/
 
 # Binary
-packetstreamer
+/packetstreamer
 
 # Documentation
 docs-mdbook/book/
