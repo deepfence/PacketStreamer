@@ -51,6 +51,8 @@ network data from multiple machines for central logging and analysis.
 
 ## Quick Start
 
+![PacketStreamer QuickStart](docs/docs/packetstreamer/img/packetstreamer.svg)
+
 For full instructions, refer to the [PacketStreamer Documentation](https://docs.deepfence.io/packetstreamer/).
 
 You will need to install the golang toolchain and `libpcap-dev` before building PacketStreamer.
