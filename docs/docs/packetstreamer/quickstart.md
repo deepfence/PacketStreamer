@@ -4,6 +4,8 @@ title: PacketStreamer Quickstart
 
 # Quick Start
 
+![PacketStreamer Demo](img/packetstreamer.svg)
+
 ## Build PacketStreamer
 
 
