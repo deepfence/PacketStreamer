@@ -40,13 +40,7 @@ pcap file or live feed the traffic to the tooling of your choice, such as
 ## When to use PacketStreamer
 
 PacketStreamer meets more general use cases than existing alternatives. For
-example, [PacketBeat](https://github.com/elastic/beats/tree/master/packetbeat)
-captures and parses the packets on multiple remote hosts, assembles
-transactions, and ships the processed data to a central ElasticSearch
-collector. [ksniff](https://github.com/eldadru/ksniff) captures raw packet
-data from a single Kubernetes pod.
-
-Use PacketStreamer if you need a lightweight, efficient method to collect raw
+example , Use PacketStreamer if you need a lightweight, efficient method to collect raw
 network data from multiple machines for central logging and analysis.
 
 ## Quick Start
