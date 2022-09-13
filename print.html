@@ -176,12 +176,7 @@ pcap file or live feed the traffic to the tooling of your choice, such as
 <code>Zeek</code>, <code>Wireshark</code> <code>Suricata</code>, or as a live stream for Machine Learning models.</p>
 <h2 id="when-to-use-packetstreamer"><a class="header" href="#when-to-use-packetstreamer">When to use PacketStreamer</a></h2>
 <p>PacketStreamer meets more general use cases than existing alternatives. For
-example, <a href="https://github.com/elastic/beats/tree/master/packetbeat">PacketBeat</a>
-captures and parses the packets on multiple remote hosts, assembles
-transactions, and ships the processed data to a central ElasticSearch
-collector. <a href="https://github.com/eldadru/ksniff">ksniff</a> captures raw packet
-data from a single Kubernetes pod.</p>
-<p>Use PacketStreamer if you need a lightweight, efficient method to collect raw
+example , Use PacketStreamer if you need a lightweight, efficient method to collect raw
 network data from multiple machines for central logging and analysis.</p>
 <h2 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h2>
 <p><img src="docs/docs/packetstreamer/img/packetstreamer.svg" alt="PacketStreamer QuickStart" /></p>
