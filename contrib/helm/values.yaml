@@ -39,6 +39,7 @@ sensor:
     key: ""
   compressBlockSize: 65
   inputPacketLen: 65535
+  gatherMaxWaitSec: 5
   # logFilename: ""
   pcapMode: all
   # capturePorts: _list-of-ports_

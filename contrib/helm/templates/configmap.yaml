@@ -51,6 +51,7 @@ data:
 {{- end }}
     compressBlockSize: {{ .Values.sensor.compressBlockSize }}
     inputPacketLen: {{ .Values.sensor.inputPacketLen }}
+    gatherMaxWaitSec: {{ .Values.sensor.gatherMaxWaitSec }}
 {{- if hasKey .Values.sensor "logFilename" }}
     logFilename: {{ .Values.sensor.logFilename }}
 {{- end }}

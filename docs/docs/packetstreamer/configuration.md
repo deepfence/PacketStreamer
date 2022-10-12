@@ -33,6 +33,7 @@ auth:                              # optional; receiver and sensor must use same
   key: string
 compressBlockSize: integer         # optional; default: 65
 inputPacketLen: integer            # optional; default: 65535
+gatherMaxWaitSec: integer          # optional; default: 5
 logFilename: filename              # optional
 pcapMode: Allow|Deny|All           # optional
 capturePorts: list-of-ports        # optional

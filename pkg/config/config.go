@@ -128,6 +128,7 @@ type RawConfig struct {
 	Auth                   AuthConfig
 	CompressBlockSize      *int             `yaml:"compressBlockSize,omitempty"`
 	InputPacketLen         *int             `yaml:"inputPacketLen,omitempty"`
+	GatherMaxWaitSec       *int             `yaml:"gatherMaxWaitSec,omitempty"`
 	LogFilename            string           `yaml:"logFilename,omitempty"`
 	PcapMode               string           `yaml:"pcapMode,omitempty"`
 	CapturePorts           []int            `yaml:"capturePorts,omitempty"`
@@ -151,6 +152,7 @@ type Config struct {
 	MaxGatherLen           int
 	MaxPayloadLen          int
 	MaxHeaderLen           int
+	MaxGatherWait          time.Duration
 }
 
 func NewConfig(configFileName string) (*Config, error) {
@@ -189,6 +191,11 @@ func NewConfig(configFileName string) (*Config, error) {
 	inputPacketLen := 65535
 	if rawConfig.InputPacketLen != nil {
 		inputPacketLen = *rawConfig.InputPacketLen
+	}
+
+	gatherMaxWaitSec := 5
+	if rawConfig.GatherMaxWaitSec != nil {
+		gatherMaxWaitSec = *rawConfig.GatherMaxWaitSec
 	}
 
 	var pcapMode PcapMode
@@ -230,6 +237,7 @@ func NewConfig(configFileName string) (*Config, error) {
 		},
 		MaxEncodedLen: s2.MaxEncodedLen(compressBlockSize * kilobyte),
 		MaxGatherLen:  compressBlockSize * kilobyte,
+		MaxGatherWait: time.Duration(gatherMaxWaitSec) * time.Second,
 		MaxPayloadLen: s2.MaxEncodedLen(compressBlockSize*kilobyte) + /*hdrData*/ 4 + /*payloadMarker*/ 4,
 		MaxHeaderLen:  + /*hdrData*/ 4 + /*payloadMarker*/ 4,
 	}
