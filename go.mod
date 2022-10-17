@@ -12,7 +12,7 @@ require (
 	github.com/inhies/go-bytesize v0.0.0-20210819104631-275770b98743
 	github.com/klauspost/compress v1.14.2
 	github.com/segmentio/kafka-go v0.4.32
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -30,7 +30,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.3 // indirect
 	github.com/aws/smithy-go v1.11.2 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/miekg/dns v1.1.25 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
