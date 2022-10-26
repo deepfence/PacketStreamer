@@ -80,39 +80,61 @@ func gatherPkts(config *config.Config, pktGatherChannel, compressChan chan strin
 	var packetData = make([]byte, config.MaxGatherLen)
 	var tmpPacketData []byte
 
+	timeout := time.After(config.MaxGatherWait)
+	send_packets := false
+	enqueue_next := false
 	for {
-		tmpChanData, chanExitVal := <-pktGatherChannel
-		if !chanExitVal {
-			log.Println("Error while reading from gather channel")
-			break
-		}
-		pktsRead += 1
-		tmpPacketData = []byte(tmpChanData)
-		currLen = len(tmpPacketData)
-		if (totalLen + currLen) > config.MaxGatherLen {
-			// NOTE(vadorovsky): Currently we output an uncompressed packet to
-			// two channels:
-			// * `compressChan` - to output the compressed packets to an another
-			//    PacketStreamer server
-			// * `pluginChan` - to output the raw packets to plugins
-			// TODO(vadorovsky): We eventually want to compress plugin outputs
-			// as well. But there is no CLI tool for uncompressing S2. Probably
-			// the best thing to do would be providing a CLI in PacketStreamer
-			// to read S2-compressed pcap files.
-			select {
-			case compressChan <- string(packetData[:totalLen]):
-			default:
-				log.Println("Gather compression queue is full. Discarding")
+		select {
+		case <-timeout:
+			send_packets = true
+		case tmpChanData, chanExitVal := <-pktGatherChannel:
+			if !chanExitVal {
+				log.Println("Error while reading from gather channel")
+				break
 			}
-			select {
-			case pluginChan <- string(packetData[:totalLen]):
-			default:
-				log.Println("Gather output queue is full. Discarding")
+			pktsRead += 1
+			tmpPacketData = []byte(tmpChanData)
+			currLen = len(tmpPacketData)
+			enqueue_next = true
+
+			if (totalLen + currLen) > config.MaxGatherLen {
+				send_packets = true
 			}
-			totalLen = 0
 		}
-		copy(packetData[totalLen:], tmpPacketData[:currLen])
-		totalLen += currLen
+
+		if send_packets {
+			if totalLen > 0 {
+				// NOTE(vadorovsky): Currently we output an uncompressed packet to
+				// two channels:
+				// * `compressChan` - to output the compressed packets to an another
+				//    PacketStreamer server
+				// * `pluginChan` - to output the raw packets to plugins
+				// TODO(vadorovsky): We eventually want to compress plugin outputs
+				// as well. But there is no CLI tool for uncompressing S2. Probably
+				// the best thing to do would be providing a CLI in PacketStreamer
+				// to read S2-compressed pcap files.
+				select {
+				case compressChan <- string(packetData[:totalLen]):
+				default:
+					log.Println("Gather compression queue is full. Discarding")
+				}
+				select {
+				case pluginChan <- string(packetData[:totalLen]):
+				default:
+					log.Println("Gather output queue is full. Discarding")
+				}
+				totalLen = 0
+			}
+
+			send_packets = false
+			timeout = time.After(config.MaxGatherWait)
+		}
+
+		if enqueue_next {
+			enqueue_next = false
+			copy(packetData[totalLen:], tmpPacketData[:currLen])
+			totalLen += currLen
+		}
 	}
 }
 
