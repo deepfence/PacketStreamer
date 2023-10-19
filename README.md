@@ -19,7 +19,7 @@ Primary design goals:
   and Windows
 
 PacketStreamer **sensors** are started on the target servers. Sensors capture
-traffic, apply filters, and then stream the traffic to a central reciever.
+traffic, apply filters, and then stream the traffic to a central receiver.
 Traffic streams may be compressed and/or encrypted using TLS.
 
 The PacketStreamer **receiver** accepts PacketStreamer streams from multiple
@@ -28,7 +28,7 @@ remote sensors, and writes the packets to a local `pcap` capture file
 <p align="center"><img src="https://raw.githubusercontent.com/deepfence/PacketStreamer/main/images/readme/packetstreamer.png"/><p>
 
 PacketStreamer sensors collect raw network packets on remote hosts. It selects packets
-to capture using a BPF filter, and forwards them to a central reciever process
+to capture using a BPF filter, and forwards them to a central receiver process
 where they are written in pcap format.  Sensors are very lightweight and impose
 little performance impact on the remote hosts. PacketStreamer sensors can be
 run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.
