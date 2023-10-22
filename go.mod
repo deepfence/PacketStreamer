@@ -10,7 +10,7 @@ require (
 	github.com/google/gopacket v1.1.19
 	github.com/google/uuid v1.3.0
 	github.com/inhies/go-bytesize v0.0.0-20210819104631-275770b98743
-	github.com/klauspost/compress v1.14.2
+	github.com/klauspost/compress v1.16.0
 	github.com/segmentio/kafka-go v0.4.32
 	github.com/spf13/cobra v1.4.0
 	gopkg.in/yaml.v3 v3.0.1
