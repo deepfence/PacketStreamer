@@ -34,7 +34,7 @@ little performance impact on the remote hosts. PacketStreamer sensors can be
 run on bare-metal servers, on Docker hosts, and on Kubernetes nodes.
 
 The PacketStreamer receiver accepts network traffic from multiple sensors,
-collecting it into a single, central `pcap` file.  You can then process the 
+collecting it into a single, central `pcap` file.  You can then process the
 pcap file or live feed the traffic to the tooling of your choice, such as
 `Zeek`, `Wireshark` `Suricata`, or as a live stream for Machine Learning models.
 
@@ -51,16 +51,17 @@ network data from multiple machines for central logging and analysis.
 For full instructions, refer to the [PacketStreamer Documentation](https://docs.deepfence.io/packetstreamer/).
 
 You will need to install the golang toolchain and `libpcap-dev` before building PacketStreamer.
-  
+
 ```shell script
 # Pre-requisites (Ubuntu): sudo apt install golang-go libpcap-dev
 git clone https://github.com/deepfence/PacketStreamer.git
 cd PacketStreamer/
+make localinit
 make
 ```
 
 Run a PacketStreamer receiver, listening on port **8081** and writing pcap output to **/tmp/dump_file** (see [receiver.yaml](contrib/config/receiver.yaml)):
-  
+
 ```shell script
 ./packetstreamer receiver --config ./contrib/config/receiver.yaml
 ```
@@ -76,7 +77,7 @@ cp ./contrib/config/sensor-local.yaml ./contrib/config/sensor.yaml
 ./packetstreamer sensor --config ./contrib/config/sensor.yaml
 ```
 
-  
+
 ## Who uses PacketStreamer?
 
  * Deepfence [ThreatStryker](https://deepfence.io/threatstryker/) uses

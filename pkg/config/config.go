@@ -64,15 +64,24 @@ type KafkaPluginConfig struct {
 	Timeout     time.Duration      `yaml:"timeout,omitempty"`
 }
 
+type AgentPluginConfig struct {
+	SocketPath string `yaml:"socketPath"`
+}
+
 type PluginsConfig struct {
 	S3    *S3PluginConfig
 	Kafka *KafkaPluginConfig
+	Agent *AgentPluginConfig
 }
 
 type OutputConfig struct {
 	File    *FileOutputConfig
 	Server  *ServerOutputConfig
 	Plugins *PluginsConfig
+}
+
+type AgentOutputRawConfig struct {
+	SocketPath string `yaml:"socketPath"`
 }
 
 type S3OutputRawConfig struct {
@@ -97,6 +106,7 @@ type KafkaOutputRawConfig struct {
 type PluginsRawConfig struct {
 	S3    *S3OutputRawConfig
 	Kafka *KafkaOutputRawConfig
+	Agent *AgentOutputRawConfig
 }
 
 type OutputRawConfig struct {
@@ -168,6 +178,7 @@ func NewConfig(configFileName string) (*Config, error) {
 
 	var s3Config *S3PluginConfig
 	var kafkaConfig *KafkaPluginConfig
+	var agentConfig *AgentPluginConfig
 	if rawConfig.Output != nil && rawConfig.Output.Plugins != nil {
 
 		s3Config, err = populateS3Config(rawConfig)
@@ -177,6 +188,12 @@ func NewConfig(configFileName string) (*Config, error) {
 		}
 
 		kafkaConfig, err = populateKafkaConfig(rawConfig)
+
+		if err != nil {
+			return nil, err
+		}
+
+		agentConfig, err = populateAgentConfig(rawConfig)
 
 		if err != nil {
 			return nil, err
@@ -220,6 +237,7 @@ func NewConfig(configFileName string) (*Config, error) {
 			Plugins: &PluginsConfig{
 				S3:    s3Config,
 				Kafka: kafkaConfig,
+				Agent: agentConfig,
 			},
 		},
 		TLS:                    rawConfig.TLS,
@@ -308,6 +326,16 @@ func populateKafkaConfig(rawConfig RawConfig) (*KafkaPluginConfig, error) {
 		Acks:        acks,
 		FileSize:    fileSize,
 		Timeout:     rawConfig.Output.Plugins.Kafka.Timeout,
+	}, nil
+}
+
+func populateAgentConfig(rawConfig RawConfig) (*AgentPluginConfig, error) {
+	if rawConfig.Output.Plugins.Agent == nil {
+		return nil, nil
+	}
+
+	return &AgentPluginConfig{
+		SocketPath: rawConfig.Output.Plugins.Agent.SocketPath,
 	}, nil
 }
 
