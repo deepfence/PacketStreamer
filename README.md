@@ -1,9 +1,9 @@
-[![Documentation](https://img.shields.io/badge/documentation-read-green)](https://docs.deepfence.io/packetstreamer)
-[![GitHub license](https://img.shields.io/github/license/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/blob/master/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/stargazers)
-[![Hacktoberfest](https://img.shields.io/github/hacktoberfest/2022/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/issues)
-[![GitHub issues](https://img.shields.io/github/issues/deepfence/PacketStreamer)](https://github.com/deepfence/PacketStreamer/issues)
-[![Slack](https://img.shields.io/badge/slack-@deepfence-blue.svg?logo=slack)](https://join.slack.com/t/deepfence-community/shared_invite/zt-podmzle9-5X~qYx8wMaLt9bGWwkSdgQ)
+# NOTE
+
+This is a close fork of the [![Deepfence PacketStreamer](https://img.shields.io/badge/documentation-read-green)](https://deepfence.io/packetstreamer).
+
+We are only adding cloud build scripts to ease binary distribution of this excellent tool
+
 
 # PacketStreamer
 
