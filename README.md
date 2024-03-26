@@ -1,6 +1,6 @@
 # NOTE
 
-This is a close fork of the [![Deepfence PacketStreamer](https://img.shields.io/badge/documentation-read-green)](https://deepfence.io/packetstreamer).
+This is a close fork of the [Deepfence PacketStreamer Project](https://deepfence.io/packetstreamer).
 
 We are only adding cloud build scripts to ease binary distribution of this excellent tool
 
