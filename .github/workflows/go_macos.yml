@@ -22,13 +22,11 @@ jobs:
       matrix:
         # List of GOOS and GOARCH pairs from `go tool dist list`
         # https://www.digitalocean.com/community/tutorials/how-to-build-go-executables-for-multiple-platforms-on-ubuntu-16-04
-        goosarch:                    
-          - 'linux/amd64'          
-          - 'windows/amd64'          
+        goosarch:          
+          - 'darwin/amd64'                    
           # etc
     steps:
-      - name: Install system dependencies
-        if: runner.os == 'Linux'
+      - name: Install system dependencies        
         run: |
           sudo apt update
           sudo apt-get update
@@ -52,7 +50,8 @@ jobs:
           BINARY_NAME=packetstreamer-$GOOS-$GOARCH
           echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
           echo "GOOS=$GOOS" >> $GITHUB_ENV
-          echo "GOARCH=$GOARCH" >> $GITHUB_ENV      
+          echo "GOARCH=$GOARCH" >> $GITHUB_ENV
+          echo "CGO_ENABLED=1" >> $GITHUB_ENV      
       - name: Build
         run: |
           go build -o "$BINARY_NAME" -v .
