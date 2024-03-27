@@ -23,12 +23,9 @@ jobs:
         # List of GOOS and GOARCH pairs from `go tool dist list`
         # https://www.digitalocean.com/community/tutorials/how-to-build-go-executables-for-multiple-platforms-on-ubuntu-16-04
         goosarch:          
-          - 'darwin/amd64'
-          - 'linux/386'
-          - 'linux/amd64'
-          - 'linux/arm64'
-          - 'windows/amd64'
-          - 'windows/386'          
+          - 'darwin/amd64'          
+          - 'linux/amd64'          
+          - 'windows/amd64'          
           # etc
     steps:
       - name: Install system dependencies
