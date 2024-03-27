@@ -48,15 +48,18 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.17.0'
-      - name: Get OS and arch info
+      - name: Get OS and arch info (non Mac)
         run: |
           GOOSARCH=${{matrix.goosarch}}
           GOOS=${GOOSARCH%/*}
           GOARCH=${GOOSARCH#*/}
-          BINARY_NAME=bulkvt-$GOOS-$GOARCH
+          BINARY_NAME=packetstreamer-$GOOS-$GOARCH
           echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
           echo "GOOS=$GOOS" >> $GITHUB_ENV
           echo "GOARCH=$GOARCH" >> $GITHUB_ENV
+      - name: Add Mac Cross Compiling
+        if: runner.os == 'Darwin'
+        run: |          
           echo "CGO_ENABLED=1" >> $GITHUB_ENV
       - name: Build
         run: |
