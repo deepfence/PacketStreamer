@@ -31,10 +31,20 @@ jobs:
           - 'windows/386'          
           # etc
     steps:
+      - name: Install system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt-get update
+          sudo apt-get -y install libssh-dev #package ssh dependency
+          while read -r cmd
+          do
+            eval sudo $cmd
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 0        
       - uses: actions/setup-go@v2
         with:
           go-version: '1.17.0'
