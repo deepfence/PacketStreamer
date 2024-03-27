@@ -17,7 +17,7 @@ jobs:
   
   release:
     name: Create Release
-    runs-on: 'ubuntu-latest'    
+    runs-on: 'macos-latest'    
     strategy:
       matrix:
         # List of GOOS and GOARCH pairs from `go tool dist list`
