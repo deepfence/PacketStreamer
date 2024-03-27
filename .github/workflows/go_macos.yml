@@ -25,16 +25,7 @@ jobs:
         goosarch:          
           - 'darwin/amd64'                    
           # etc
-    steps:
-      - name: Install system dependencies        
-        run: |
-          sudo apt update
-          sudo apt-get update
-          sudo apt-get -y install libpcap-dev
-          while read -r cmd
-          do
-            eval sudo $cmd
-          done
+    steps:      
       - name: Checkout code
         uses: actions/checkout@v2
         with:
