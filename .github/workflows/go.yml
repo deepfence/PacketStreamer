@@ -58,7 +58,7 @@ jobs:
           echo "GOOS=$GOOS" >> $GITHUB_ENV
           echo "GOARCH=$GOARCH" >> $GITHUB_ENV
       - name: Add Mac Cross Compiling
-        if: runner.os == ''macOS'
+        if: runner.os == 'macOS'
         run: |          
           echo "CGO_ENABLED=1" >> $GITHUB_ENV
       - name: Build
